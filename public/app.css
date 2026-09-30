@@ -1,0 +1,78 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f7f7f7;
+  color: #222;
+}
+
+nav {
+  background: #732181;
+  padding: 12px 20px;
+  color: white;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  margin-right: 14px;
+}
+
+nav .rt{
+  float: right;
+}
+
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  background: white;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.card img {
+  float: right;
+  margin-left: 12px;
+  margin-bottom: 8px;
+  max-height: 10em;
+  width:auto;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.success {
+  color: #15803d;
+}
+
+form {
+  display: grid;
+  gap: 10px;
+}
+
+input, button, select {
+  padding: 8px;
+  font-size: 16px;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.inline {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}

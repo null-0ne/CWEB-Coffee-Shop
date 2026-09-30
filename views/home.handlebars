@@ -1,0 +1,17 @@
+<h1>{{title}}</h1>
+
+<div class="card">
+  <h2>CWEB 280 Midterm Project</h2>
+  <p>Demostration of Express, Handlebars, TypeORM, express-validator, Multer, and JWT with cookie-parser</p>
+</div>
+
+<div class="card">
+  <img src="/clouds.jpg" />
+  <h3>Students</h3>
+  <ul>
+    {{#each students}}
+      <li>{{this.name}} - {{this.section}}</li>
+    {{/each}}
+  </ul>
+
+</div>

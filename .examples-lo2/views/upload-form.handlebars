@@ -1,0 +1,17 @@
+<h1>{{title}}</h1>
+
+{{#if error}}
+  <p class="error">{{error}}</p>
+{{/if}}
+
+{{#if success}}
+  <p class="success">File uploaded successfully: {{uploadedFile}}</p>
+  <!-- display the uploaded file below in an image tag -->
+  <img src="/images/{{uploadedFile}}" alt="Uploaded Image" />
+{{/if}}
+    
+<form action="/upload" method="POST" enctype="multipart/form-data">
+  <label>Select image</label>
+  <input type="file" name="myFile" required />
+  <button type="submit">Upload</button>
+</form>

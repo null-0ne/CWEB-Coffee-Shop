@@ -1,0 +1,61 @@
+{
+  "name": "Node24 + MySQL",
+
+  "dockerComposeFile": "docker-compose.yml",
+
+  "service": "dev",
+
+  "workspaceFolder": "/workspace",
+
+  "runServices": [
+    "dev",
+    "mysql"
+  ],
+
+  "postCreateCommand": "npm i -g npm && npm i",
+  "shutdownAction": "stopCompose",
+
+  "remoteUser": "node",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "ecmel.vscode-html-css",
+        "esbenp.prettier-vscode",
+        "htmlhint.vscode-htmlhint",
+        "jkjustjoshing.vscode-text-pastry",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.js-debug",
+        "ms-vscode.vscode-typescript-next",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-mysql",
+        "mtxr.sqltools-driver-pg",
+        "oderwat.indent-rainbow",
+        "PostMate-lab.postmate",
+        "ritwickdey.liveserver",
+        "stylelint.vscode-stylelint",
+        "webhint.vscode-webhint",
+        "-vscode.github-authentication"
+      ],
+      "settings": {
+        "chat.agent.enabled": false,
+        "chat.disableAIFeatures": true,
+        "chat.experimental.agent": false,
+        "git.addAICoAuthor": "all",
+		"editor.hover.enabled": false,
+        "editor.inlineSuggest.enabled": false,
+		"editor.inlineSuggest.edits.allowCodeShifting": "never",
+		"editor.inlineSuggest.edits.showCollapsed": true,
+		"editor.lightbulb.enabled": "off",
+        "continue.disableQuickFix": true,
+        "accessibility.signals.chat": "off",
+        "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+        "chat.instructionsFilesLocations": {
+          ".github/copilot-instructions.md": true,
+          ".github/instructions": true
+        }
+      }
+    }
+  }
+}
