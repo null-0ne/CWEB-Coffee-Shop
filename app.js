@@ -40,15 +40,15 @@ app.use(cookieParser());
 ***********************************/
 app.get('/', (req, res) => {
   res.render('home', {
-    title: 'INSERT YOUR APP NAME HERE',
+    title: 'Coffee Shop Hub',
 	
     students:[ //TODO Add you team names alphabetically by first name (include First letter of Family name)
-		{ name: 'Student A.', section: 'Section Name'},
-		{ name: 'Student B.', section: 'Section Name'},
-		{ name: 'Student C.', section: 'Section Name'},
-		{ name: 'Student D.', section: 'Section Name'},
-		{ name: 'Student E.', section: 'Section Name'},
-		{ name: 'Student F.', section: 'Section Name'}
+		{ name: 'Garrett T.', section: 'Contact & Hours'},
+		{ name: 'Kevin O.', section: 'Showcase Gallery - Multer'},
+		{ name: 'Roseanne A.', section: 'Custom Orders'},
+		{ name: 'Samuel C.', section: 'Menu Items'},
+		{ name: 'Sucha S.', section: 'Customer Reviews'},
+		{ name: 'Rylan W.', section: 'Auth & Profile'}
     ]
   });
 });
