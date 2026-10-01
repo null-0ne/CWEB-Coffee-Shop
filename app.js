@@ -54,9 +54,28 @@ app.get('/', (req, res) => {
 });
 
 /*********** CUSTOM ORDERS ************
- * URL: http://localhost:8000/
+ * URL: http://localhost:8000/custom_orders
  * 
 ************************************/
+
+//Item-order object to post in database?
+//add items as you go along + whatever schema the group decides for database
+const itemOrder = {};
+
+app.get('/custom_orders', (req, res) => {
+  res.render('custom_orders', {
+    title: 'CUSTOM ORDERS',
+
+    //take menu from the database
+    //hard-coded for now? 
+    menu_list: [
+      { item: 'Artisan Baguette', price: 4.00 },
+      { item: 'Insert Pretentious Coffee Name here', price: 32.50},
+      { item: 'Muffin', price: 3.50 }
+    ]
+  })
+
+});
 
 
 

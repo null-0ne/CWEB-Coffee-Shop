@@ -7,11 +7,33 @@
 
 <div class="card">
   <img src="/clouds.jpg" />
-  <h3>Students</h3>
-  <ul>
-    {{#each students}}
-      <li>{{this.name}} - {{this.section}}</li>
+
+//make sure to add id later
+<form>
+
+  <label for="menu-select">Pick Item from Menu</label>
+  <p>
+    <select name="menu" id="menu-select">
+      <option value="">--Please choose an option--</option>
+      {{#each menu_list}}
+      //for the value, probably want id instead of name of item?
+      <option value="{{this.item}}">{{this.item}}</option>
+      {{/each}}
+    </select>
+  </p>
+
+  //Add button should: choose blank option, 
+
+
+  //button to submit form
+  </form>
+
+
+
+  {{!-- <ul>
+    {{#each menu_list}}
+      <li>{{this.item}} - {{this.price}}</li>
     {{/each}}
-  </ul>
+  </ul> --}}
 
 </div>
