@@ -42,7 +42,7 @@ app.get('/', (req, res) => {
   res.render('home', {
     title: 'INSERT YOUR APP NAME HERE',
 	
-    students:[ //TODO Add you team names alphabetically by first name (include First letter of Family name)
+    students:[
 		{ name: 'Garrett T.', section: 'Contact & Hours'},
 		{ name: 'Kevin O.', section: 'Showcase Gallery - Multer'},
 		{ name: 'Roseanne A', section: 'Custom Orders'},
@@ -52,6 +52,11 @@ app.get('/', (req, res) => {
     ]
   });
 });
+
+/*********** CUSTOM ORDERS ************
+ * URL: http://localhost:8000/
+ * 
+************************************/
 
 
 
