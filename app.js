@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 	
     students:[ //TODO Add you team names alphabetically by first name (include First letter of Family name)
 		{ name: 'Garrett T.', section: 'Section Name'},
-		{ name: 'Kevin Obillo.', section: 'Section Name'},
+		{ name: 'Kevin O.', section: 'Section Name'},
 		{ name: 'Roseanne A', section: 'Section Name'},
 		{ name: 'Rylan W.', section: 'Section Name'},
 		{ name: 'Samuel C.', section: 'Section Name'},
