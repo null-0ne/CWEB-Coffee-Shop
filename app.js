@@ -43,12 +43,12 @@ app.get('/', (req, res) => {
     title: 'INSERT YOUR APP NAME HERE',
 	
     students:[ //TODO Add you team names alphabetically by first name (include First letter of Family name)
-		{ name: 'Garrett T.', section: 'Section Name'},
-		{ name: 'Kevin O.', section: 'Section Name'},
-		{ name: 'Roseanne A', section: 'Section Name'},
-		{ name: 'Rylan W.', section: 'Section Name'},
-		{ name: 'Samuel C.', section: 'Section Name'},
-		{ name: 'Sucha S.', section: 'Section Name'}
+		{ name: 'Garrett T.', section: 'Contact & Hours'},
+		{ name: 'Kevin O.', section: 'Showcase Gallery - Multer'},
+		{ name: 'Roseanne A', section: 'Custom Orders'},
+		{ name: 'Rylan W.', section: 'Auth & Profile'},
+		{ name: 'Samuel C.', section: 'Menu Items'},
+		{ name: 'Sucha S.', section: 'Customer Reviews'}
     ]
   });
 });
