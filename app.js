@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const { AppDataSource } = require('./data-source');
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -32,6 +33,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Connect DB
+AppDataSource.initialize().then(() => {
+  console.log("DB Connected");
+}).catch(err => console.error(err));
+
 
 
 /*********** HOME PAGE ************
@@ -46,12 +52,46 @@ app.get('/', (req, res) => {
 		{ name: 'Garrett T.', section: 'Contact & Hours'},
 		{ name: 'Kevin O.', section: 'Showcase Gallery - Multer'},
 		{ name: 'Roseanne A.', section: 'Custom Orders'},
+    { name: 'Rylan W.', section: 'Auth & Profile'},
 		{ name: 'Samuel C.', section: 'Menu Items'},
-		{ name: 'Sucha S.', section: 'Customer Reviews'},
-		{ name: 'Rylan W.', section: 'Auth & Profile'}
+		{ name: 'Sucha S.', section: 'Customer Reviews'}
     ]
   });
 });
+
+/**
+ * LOGIN GET request
+ */
+app.get('/login', (req, res) => {
+  res.render('account-auth', {
+    title: 'Login',
+    currentUser: req.user,
+    isRegister: false
+  });
+});
+
+app.get('/register', (req, res) => {
+  res.render('account-auth',  // handlebar template with both register and login forms
+  {
+    title: 'Register',
+    currentUser: req.user,
+    isRegister: true // show the register form instead of the login form
+  });
+});
+
+app.post('/register', // need to test trim
+  [
+    body('userName').trim(" ").notEmpty().isLength({
+      min: 3,
+      max: 20
+    }).withMessage('Username is required and must be between 3 and 20 characters.'),
+    body('email').isEmail().withMessage('Email is invalid.')
+    .normalizeEmail() // sanitize email address **
+    .custom((value) => {
+      // const exists = registeredUsers ** This needs to be from the database
+    })
+  ]
+)
 
 
 
