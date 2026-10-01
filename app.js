@@ -50,6 +50,10 @@ app.get("/", (req, res) => {
     });
 });
 
+app.get("/menu", (req, res) => {
+    res.render("menu", {});
+});
+
 /*********** Start the server *************/
 app.listen(PORT, () => {
     console.log(`Exercise-LO2 running at http://localhost:${PORT}`);
