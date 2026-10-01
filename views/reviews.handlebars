@@ -1,0 +1,44 @@
+<h1>{{title}}</h1>
+
+{{#if errors}}
+<ul style="color: red;">
+  {{#each errors}}
+    <li>{{this.msg}}</li>
+  {{/each}}
+</ul>
+{{/if}}
+
+{{#if data}}
+    <li>"Success"</li>
+{{/if}}
+
+<div class="card">
+  <h2>Rating</h2>
+
+  <form method="POST" action="/reviews">
+    <div class="rating">
+      <input type="radio" id="star1" name="rating" value="5" />
+      <label for="star1">★</label>
+
+      <input type="radio" id="star2" name="rating" value="4" />
+      <label for="star2">★</label>
+
+      <input type="radio" id="star3" name="rating" value="3" />
+      <label for="star3">★</label>
+
+      <input type="radio" id="star4" name="rating" value="2" />
+      <label for="star4">★</label>
+
+      <input type="radio" id="star5" name="rating" value="1" />
+      <label for="star5">★</label>
+    </div>
+    <div>
+      <h2>Review</h2>
+      <input id="review" name="review" type="textArea" />
+    </div>
+
+    <button type="submit">Submit</button>
+  </form>
+</div>
+
+
