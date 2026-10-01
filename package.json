@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",
-    "push":"sh -c 'git add -A && git commit -m \"$1\" && git push' --"
+    "push": "sh -c 'git add -A && git commit -m \"$1\" && git push' --"
   },
   "dependencies": {
     "cookie-parser": "1.4.7",
@@ -19,6 +19,16 @@
     "typeorm": "1.1.1"
   },
   "devDependencies": {
-    "nodemon": "3.1.14"
-  }
+    "nodemon": "^3.1.14"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://obillo5367@bitbucket.org/cstprojects/cweb-mid-a1.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://bitbucket.org/cstprojects/cweb-mid-a1/issues"
+  },
+  "homepage": "https://bitbucket.org/cstprojects/cweb-mid-a1#readme"
 }
