@@ -1,14 +1,6 @@
 <h1>{{title}}</h1>
 
-{{#if errors.length}}
-  <div class="error">
-    <ul>
-      {{#each errors}}
-        <li>{{this.msg}}</li>
-      {{/each}}
-    </ul>
-  </div>
-{{/if}}
+
 
 {{#if isRegister}}
 <form action="/register" method="POST">
@@ -18,8 +10,8 @@
     <label>Password:</label>
     <input type="password" name="password" value="{{oldInput.password}}" />
 
-    <label>Re-enter Password:</label>
-    <input type="password" name="password" value="{{oldInput.password}}" />
+    <label>Confirm Password:</label>
+    <input type="password" name="confPassword" value="{{oldInput.password}}" />
     
     <label>Email:</label>
     <input type="email" name="email" value="{{oldInput.email}}" />
@@ -34,6 +26,15 @@
 
     <label>Password</label>
     <input type="password" name="password" value="{{oldInput.password}}" placeholder="12345Pwd" required />
+    {{#if errors.length}}
+      <div class="error">
+        <ul>
+          {{#each errors}}
+            <li>{{this.msg}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
 
     <button type="submit">Login</button>
 </form>

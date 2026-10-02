@@ -12,3 +12,7 @@ ALTER TABLE `user`
   ALTER TABLE `user`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
+
+INSERT INTO user (
+  userName,email, password
+) VALUES ('buffy', 'buffy@test.ca', 'Strong!Password1');
