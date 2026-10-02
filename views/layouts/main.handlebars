@@ -10,7 +10,13 @@
   <nav>
     <a href="/">Home</a>
     <a href="/">NAV IN MAIN.HANDLEBARS</a>
-    <span class="rt"> Welcome, USER WHO IS LOGGED IN </span>
+    {{#if user}}
+      <span class="rt"> Welcome, {{user.userName}} </span> 
+      <form action="/logout" method="POST"><input type="submit" value="Log Out" /></form>
+    {{else}}
+      <span class="rt"> <a href="/login">Login</a> </span> 
+    {{/if}}
+    {{!-- USER WHO IS LOGGED IN --}}
   </nav>
 
   <div class="container">

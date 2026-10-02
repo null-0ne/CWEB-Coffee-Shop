@@ -12,6 +12,8 @@ const { User } = require('./entity/User')
 const app = express();
 const PORT = 8000;
 
+const SECRET_KEY = 'mysecret';
+
 
 /******************************** CONFIGURE HANDLEBARS *******************************/
 // The custom helpers make it easier to format data in templates.
@@ -21,6 +23,10 @@ const hbs = exphbs.create({
     layoutsDir: './views/layouts',
     helpers: {
         eq: (a, b) => a === b, //simple equality helper function
+        logout: () => {
+          console.log("Check 1 2")
+          
+        }
     }
 });
 app.engine('handlebars', hbs.engine);
@@ -45,9 +51,11 @@ AppDataSource.initialize().then(() => {
  * URL: http://localhost:8000/
  * Home page: displays learning concepts and sample student names.
 ***********************************/
-app.get('/', (req, res) => {
+app.get('/', authenticateTokenFromCookie, (req, res) => {
   res.render('home', {
     title: 'Coffee Shop Hub',
+    user: req.user, // If there is no token this will be undefined and 
+                    // result in a false in main.handlebars
 	
     students:[ //TODO Add you team names alphabetically by first name (include First letter of Family name)
 		{ name: 'Garrett T.', section: 'Contact & Hours'},
@@ -70,13 +78,29 @@ app.get('/login', (req, res) => {
     isRegister: false
   });
 });
+app.post('/logout', (req, res) => {
+            res.clearCookie('token');
+            res.redirect('/'); // Not sure how to redirect back to the page you were on, but that might not be proper functionality anyway
+          });
 
 app.post('/login', async(req, res) => {
+
+  const {id, userName, email, password } = req.body;
+    // create repository
     const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOneBy({ email: req.body.email });
-    //res.json(user);
-    console.log(user.password);
-    if(user && req.body.password === user.password){
+    // query the database to find a user based on the inputted email
+    const user = await userRepository.findOneBy({ email: email });
+    // check if that user exists and if the password matches
+    if(user && password === user.password){
+      // If password matches, log in and redirect
+      // create JWT
+      const token = jwt.sign({ id: user.id, userName: user.userName }, SECRET_KEY, { expiresIn: '1h' });
+      // Set token in HttpOnly cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false, // set true if using HTTPS
+        maxAge: 60 * 60 * 1000 // 1 hour
+      });
       res.redirect('/');
     }
     else{
@@ -149,6 +173,22 @@ app.post('/register', // need to test trim
     res.redirect('/login');
   }
 )
+
+// Middleware to authenticate JWT from cookie
+function authenticateTokenFromCookie(req, res, next) {
+  const token = req.cookies.token;
+  // If the token doesn't exist ( user is not logged in )
+  // do nothing and move on from middleware
+  if (!token){ 
+    return next();
+  } //return res.status(401).json({ error: 'Missing token' });
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = user;
+    next();
+  });
+}
 
 
 
