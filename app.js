@@ -6,6 +6,7 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { AppDataSource } = require('./data-source');
+const { Showcase } = require('./entity/Showcase'); // showcase database
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -33,10 +34,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-//Database Connection
-AppDataSource.initialize().then(() => {
-    console.log("DB Connected ");
-}).catch(err => console.error(err));
 
 /*********** HOME PAGE ************
  * URL: http://localhost:8000/
@@ -58,10 +55,17 @@ app.get('/', (req, res) => {
 });
 
 
+//Database Connection
+AppDataSource.initialize().then(() => {
+    console.log("DB Connected ");
+    const showcaseRepository = AppDataSource.getRepository(Showcase);
+}).catch(err => console.error(err));
+
+
 //Story 4 - Showcase Gallery - Multer - Kevin Obillo
 const storage = multer.diskStorage({
   destination: 'public/images/',
-  fileName:(req, file, callBack) => (null, Date.now() + '-' + file.originalname.toLowerCase())
+  fileName:(req, file, callBack) => callBack(null, Date.now() + '-' + file.originalname.toLowerCase())
 });
 
 const upload = multer({
@@ -72,13 +76,13 @@ const upload = multer({
     {
       callBack(null, true);
     } else{
-      callBack(new Error('Only image file only'));
+      callBack(new Error('Only image file are allowed'));
     }
   }
 });
 
-app.get("/upload", (req, res) => {
-  res.render("upload", {
+app.get("/showcase", (req, res) => {
+  res.render("showcase", {
     title: "Upload Image",
     success: false,
     uploadFile:null,
@@ -87,7 +91,9 @@ app.get("/upload", (req, res) => {
 })
 
 
+
+
 /*********** Start the server *************/
 app.listen(PORT, () => {
-  console.log(`Exercise-LO2 running at http://localhost:${PORT}`);
+  console.log(`Midterm Project running at http://localhost:${PORT}`);
 });

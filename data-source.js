@@ -1,6 +1,7 @@
 require("reflect-metadata");
 const { DataSource } = require("typeorm");
 const { Menu } = require("./entity/Menu");
+const { Showcase } = require("./entity/Showcase");
 
 module.exports.AppDataSource = new DataSource({
   type: "mysql",
@@ -11,5 +12,5 @@ module.exports.AppDataSource = new DataSource({
   database: "cweb", // make sure this DB exists
   synchronize: true, // auto-create tables
   logging: false,
-  entities: [Menu], //If the entity is not listed in the array the table will NOT be created
+  entities: [Menu, Showcase], //If the entity is not listed in the array the table will NOT be created
 });
