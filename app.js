@@ -82,9 +82,9 @@ app.post(
   ],
   async (req, res) => {
     if(!req.cookies.id)
-  {
-    return res.redirect("http://localhost:8000/");
-  }
+    {
+      return res.redirect("http://localhost:8000/");
+    }
     const errors = validationResult(req);
     //console.log(errors);
     if (!errors.isEmpty()) {
