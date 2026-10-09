@@ -1,15 +1,11 @@
 <h1>{{title}}</h1>
 
 {{#if errors}}
-<ul style="color: red;">
-  {{#each errors}}
-    <li>{{this.msg}}</li>
-  {{/each}}
-</ul>
-{{/if}}
-
-{{#if data}}
-    <li>"Success"</li>
+  <ul style="color: red;">
+    {{#each errors}}
+      <li>{{this.msg}}</li>
+    {{/each}}
+  </ul>
 {{/if}}
 
 <div class="card">
@@ -36,9 +32,25 @@
       <h2>Review</h2>
       <input id="review" name="review" type="textArea" />
     </div>
+    <div>
+      <h2>Name(Optional)</h2>
+      <input id="name" name="name" type="textArea" />
+    </div>
 
     <button type="submit">Submit</button>
   </form>
 </div>
-
-
+{{#if reviews}}
+  
+  <div class="card">
+    <h1>Reviews</h1>
+    {{#each reviews}}
+    <div class="card">  
+        <div><h2>Rating: {{this.rating}}</h2></div>
+        <div><h3>Revie: {{this.review}}</h3></div>
+        <div><i>{{this.name}}</i></div>
+    </div>
+      
+    {{/each}}
+  </div>
+{{/if}}
