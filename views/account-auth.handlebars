@@ -1,11 +1,9 @@
 <h1>{{title}}</h1>
 
-
-
 {{#if isRegister}}
 <form action="/register" method="POST">
     <label>Username:</label>
-    <input type="text" name="userName" value="{{oldInput.displayName}}" />
+    <input type="text" name="userName" value="{{oldInput.userName}}" />
 
     <label>Password:</label>
     <input type="password" name="password" value="{{oldInput.password}}" />
@@ -15,6 +13,16 @@
     
     <label>Email:</label>
     <input type="email" name="email" value="{{oldInput.email}}" />
+
+    {{#if errors.length}}
+      <div class="error">
+        <ul>
+          {{#each errors}}
+            <li>{{this.msg}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
 
     <button type="submit">Register</button>
 </form>

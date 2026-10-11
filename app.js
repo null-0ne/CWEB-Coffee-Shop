@@ -74,7 +74,7 @@ app.get('/', authenticateTokenFromCookie, (req, res) => {
 app.get('/login', (req, res) => {
   res.render('account-auth', {
     title: 'Login',
-    currentUser: req.user,
+    user: req.user,
     isRegister: false
   });
 });
@@ -84,7 +84,6 @@ app.post('/logout', (req, res) => {
           });
 
 app.post('/login', async(req, res) => {
-
   const {id, userName, email, password } = req.body;
     // create repository
     const userRepository = AppDataSource.getRepository(User);
@@ -107,7 +106,7 @@ app.post('/login', async(req, res) => {
       return res.render('account-auth',
         {
           title: 'Login',
-          currentUser: req.user,
+          user: req.user,
           isRegister: false,
           errors: [{"msg":"Email or password is incorrect"}],
           oldInput: req.body
@@ -119,19 +118,25 @@ app.get('/register', (req, res) => {
   res.render('account-auth',  // handlebar template with both register and login forms
   {
     title: 'Register',
-    currentUser: req.user,
+    user: req.user,
     isRegister: true // show the register form instead of the login form
   });
 });
 
 app.post('/register', // need to test trim
   [
-    body('userName').trim(" ").notEmpty().isLength({
+    body('userName')
+    .trim(" ")
+    .isLength({
       min: 3,
       max: 20
-    }).withMessage('Username is required and must be between 3 and 20 characters.'),
-    body('email').isEmail().withMessage('Email is invalid.')
+    })
+    .withMessage('Username is required and must be between 3 and 20 characters.'),
+    body('email')
+    .isEmail()
+    .withMessage('Email is invalid.')
     .normalizeEmail() // sanitize email address **
+    // custom validation to check if the email trying to be registered already exists within our database
     .custom(async (value) => {
       const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOneBy({ email: value })
@@ -140,13 +145,15 @@ app.post('/register', // need to test trim
       }
       return true;
     }),
-    body('password').isStrongPassword({
+    body('password')
+    .isStrongPassword({
       minLength: 8,
-  minLowercase: 1 ,
-  minUppercase: 1,
-  minNumbers: 1,
-  minSymbols: 1,
-    }).withMessage('Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.'),
+      minLowercase: 1 ,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1,
+    })
+    .withMessage('Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.'),
     body('confPassword').custom((value, { req }) => {
       return value === req.body.password;
     }).withMessage('Passwords must match')
@@ -157,7 +164,7 @@ app.post('/register', // need to test trim
       return res.render('account-auth',
         {
           title: 'Register',
-          currentUser: req.user,
+          user: req.user,
           isRegister: true,
           errors: errors.array(),
           oldInput: req.body
@@ -169,10 +176,32 @@ app.post('/register', // need to test trim
     const userRepository = AppDataSource.getRepository(User);
     const user = userRepository.create(req.body);
     const result = await userRepository.save(user);
-    res.json(result);
-    res.redirect('/login');
+    //res.json(result);
+    //res.redirect('/login'); // should I automatically login, or redirect to login after registering?
+    // auto login after register is a better UX design in my opinion
+    const token = jwt.sign({ id: result.id, userName: result.userName }, SECRET_KEY, { expiresIn: '1h' });
+      // Set token in HttpOnly cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false, // set true if using HTTPS
+        maxAge: 60 * 60 * 1000 // 1 hour
+      });
+      res.redirect('/');
   }
 )
+
+app.get('/profile', authenticateTokenFromCookie, async (req, res) => {
+  const userRepository = AppDataSource.getRepository(User);
+  const result = await userRepository.findOne({ where: { id: req.user.id }})
+  if(!result){ // This case should not occur because a valid token must be present to access the /profile route
+    return res.json({ success: false, message: "User does not exist" });
+  }
+  res.render('profile-page', {
+    title: 'Profile',
+    user: req.user,
+    email: result.email,
+  });
+});
 
 // Middleware to authenticate JWT from cookie
 function authenticateTokenFromCookie(req, res, next) {
@@ -180,12 +209,14 @@ function authenticateTokenFromCookie(req, res, next) {
   // If the token doesn't exist ( user is not logged in )
   // do nothing and move on from middleware
   if (!token){ 
+    //res.status(401).json({ error: 'Missing token' });
     return next();
   } //return res.status(401).json({ error: 'Missing token' });
 
   jwt.verify(token, SECRET_KEY, (err, user) => {
     if (err) return res.status(403).json({ error: 'Invalid token' });
     req.user = user;
+    // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
     next();
   });
 }
