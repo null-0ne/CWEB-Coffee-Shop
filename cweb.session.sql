@@ -1,7 +1,7 @@
+DROP TABLE IF EXISTS `orderItems`;
+DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `items`;
 DROP TABLE IF EXISTS `users`;
-DROP TABLE IF EXISTS 'orderItems';
-DROP TABLE IF EXISTS 'purchases';
-DROP TABLE IF EXISTS 'items';
 
 CREATE TABLE `users` (
   `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
@@ -20,33 +20,27 @@ CREATE TABLE `orders` (
   `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `total` DECIMAL(10,2) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `userID` INT NOT NULL,
-  CONSTRAINT fk_User
-  FOREIGN KEY (`userID`)
-  REFERENCES `users`(`id`)
+  `userID` INT NOT NULL
 );
 CREATE TABLE `orderItems` (
   `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `orderID` INT NOT NULL,
   `itemID` INT NOT NULL,
-  `quantity` INT NOT NULL,
-  CONSTRAINT fk_Order
-  FOREIGN KEY (`orderID`)
-  REFERENCES `orders`(`id`),
-  CONSTRAINT fk_Item
-  FOREIGN KEY (`itemID`)
-  REFERENCES `items`(`id`)
+  `quantity` INT NOT NULL
 );
 
-
-
--- ALTER TABLE `user`
---   ADD PRIMARY KEY (`id`);
-
---   ALTER TABLE `user`
---   MODIFY `id` INT NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
--- COMMIT;
-
-INSERT INTO user (
+INSERT INTO users (
   userName,email, password
-) VALUES ('buffy', 'buffy@test.ca', 'Strong!Password1');
+) VALUES ('Buffy', 'buffy@test.ca', 'Strong!Password1'), ('Luna', 'luna@test.ca', 'Strong!Password1');
+
+INSERT INTO items (
+  itemName, price
+) VALUES ('Cappuccino', 3.00),('Espresso', 3.00), ('Americano', 3.00), ('Pie', 4.50), ('Cake', 4.50), ('Bagel', 5.00);
+
+INSERT INTO orders (
+  total, userID
+) VALUES (6.00, 1), (7.50, 1), (11.00, 2), (13.50, 2);
+
+INSERT INTO orderItems (
+  orderID, itemID, quantity
+) VALUES (1, 1, 1), (1, 3, 1), (2, 2, 1), (2, 5, 1), (3, 2, 2), (3, 6, 1), (4, 3, 3), (4, 4, 1);

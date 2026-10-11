@@ -6,7 +6,7 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { AppDataSource } = require('./data-source');
-const { User } = require('./entity/User')
+const { User, Item, Order, OrderItems } = require('./entity/User')
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -191,15 +191,31 @@ app.post('/register', // need to test trim
 )
 
 app.get('/profile', authenticateTokenFromCookie, async (req, res) => {
+  // Current User data
   const userRepository = AppDataSource.getRepository(User);
-  const result = await userRepository.findOne({ where: { id: req.user.id }})
+  // Cascaded relations to be able to access the current users orders and items within those orders
+  const result = await userRepository.findOne({ 
+    where: { id: req.user.id },
+    relations: { 
+      orders: {
+        orderItems: {
+          item: true
+        }
+      }
+    }
+  })
   if(!result){ // This case should not occur because a valid token must be present to access the /profile route
     return res.json({ success: false, message: "User does not exist" });
   }
+
+  console.log(result.orders);
+
+
   res.render('profile-page', {
     title: 'Profile',
     user: req.user,
     email: result.email,
+    orders: result.orders
   });
 });
 

@@ -1,6 +1,6 @@
 require("reflect-metadata");
 const { DataSource } = require('typeorm');
-const { User } = require('./entity/User');
+const { User, Order, Item, OrderItems } = require('./entity/User');
 
 module.exports.AppDataSource = new DataSource({
     type: 'mysql',
@@ -11,5 +11,5 @@ module.exports.AppDataSource = new DataSource({
     database: 'cweb',   // make sure this DB exists
     synchronize: true,              // auto-create tables
     logging: false,
-    entities: [User],
+    entities: [User, Order, Item, OrderItems],
 });
