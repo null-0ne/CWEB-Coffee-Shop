@@ -1,8 +1,8 @@
 const { EntitySchema } = require("typeorm");
 
 module.exports.Menu = new EntitySchema({
-    name: "MenuIttems",
-    tableName: "menuItems",
+    name: "Menu",
+    tableName: "Menu",
     columns: {
         id: {
             primary: true,
@@ -13,5 +13,9 @@ module.exports.Menu = new EntitySchema({
             type: "varchar",
             length: 255,
         },
+        type: {
+            type: "varchar",
+            length: 255,
+        }
     },
 });

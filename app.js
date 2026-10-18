@@ -5,6 +5,9 @@ const { body, validationResult } = require("express-validator");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const { AppDataSource } = require("./data-source");
+const { Menu } = require("./entity/Menu"); // showcase database
+const { SimpleConsoleLogger } = require("typeorm");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -50,9 +53,120 @@ app.get("/", (req, res) => {
     });
 });
 
-app.get("/menu", (req, res) => {
-    res.render("menu", {});
+//Database Connection
+AppDataSource.initialize()
+    .then(() => {
+        console.log("DB Connected ");
+    })
+    .catch((err) => console.error(err));
+
+/*********** TOKEN VALIDATION ************
+
+ ***********************************/
+
+// Middleware to authenticate JWT from cookie
+function authenticateTokenFromCookie(req, res, next) {
+    const token = req.cookies.token;
+    // If the token doesn't exist ( user is not logged in )
+    // do nothing and move on from middleware
+    if (!token) {
+        //res.status(401).json({ error: 'Missing token' });
+        return next();
+    } //return res.status(401).json({ error: 'Missing token' });
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) return res.status(403).json({ error: "Invalid token" });
+        req.user = user;
+        // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
+        next();
+    });
+}
+
+//function which sends the user to the log in screen if they are not authorize user
+//middleware
+function authorizeCurrentUser(req, res, next) {
+    if (!req.user) {
+        return res.redirect("/login");
+    }
+    next();
+}
+
+//DISPLAY MENU
+app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
+    const menuRepository = await AppDataSource.getRepository(Menu);
+    const menuItems = await menuRepository.find();
+    console.log(menuItems);
+
+    const { search, sort } = req.query;
+    console.log(search);
+    console.log(sort);
+    let filteredMenuItems = menuItems;
+
+    // If the user typed a search term, filter the image list before rendering it.
+    if (search && search.trim().length) {
+        const searchLower = search.toLowerCase();
+
+        //filter based on the given filter type [sort]
+
+        if (sort === "type") {
+            filteredMenuItems = menuItems.filter((item) =>
+                item.type.includes(searchLower),
+            );
+        } else if (sort === "name") {
+            filteredMenuItems = menuItems.filter((item) =>
+                item.itemName.toLowerCase().includes(searchLower),
+            );
+        }
+    }
+
+    res.render("menu", {
+        menuItems: filteredMenuItems || menuItems,
+        oldInput: req.query, // Pass the old input values for the search and sort fields.
+        success: "",
+        error: "",
+    });
 });
+
+//ADD NEW MENU ITEM
+app.post(
+    "/menu",
+    authenticateTokenFromCookie,
+    authorizeCurrentUser,
+    [
+        //middleware - express-validator uses to create the "rules"
+        body("itemName").isLength({ min: 2 }).isString(),
+        body("itemType").isLength({ min: 2 }).isString(),
+    ],
+    async (req, res) => {
+        const validationError = validationResult(req);
+        console.log(validationError);
+
+        const menuRepository = await AppDataSource.getRepository(Menu);
+
+        const { itemName, itemType } = req.body; //the two form values
+
+        if (validationError.errors.length != 0) {
+            return res.render("menu", {
+                success: false,
+                error: "Invalid menu item",
+            });
+        }
+
+        const newMenuItem = {
+            itemName: itemName,
+            type: itemType,
+        };
+
+        // Save this item to the database
+        await menuRepository.save(newMenuItem);
+
+        // Render the same form again, but now indicate success with the uploaded filename.
+        res.render("menu", {
+            success: true,
+            error: null,
+        });
+    },
+);
 
 /*********** Start the server *************/
 app.listen(PORT, () => {
