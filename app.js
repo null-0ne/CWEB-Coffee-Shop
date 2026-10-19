@@ -7,8 +7,6 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source");
 const { Showcase } = require("./entity/Showcase"); // showcase database
-const { getSystemErrorMessage } = require("util");
-const { error } = require("console");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -179,17 +177,50 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
 
 
 //TODO: Work on post
+/**
+ * Only logged in users can upload pictures.
+ * authenticateTokenFromCookie -> this will set the req.user
+ * authorizeCurrentUser -> will send the user to /login if user is not authorized to upload
+ * showcaseUpload.single("photo") -> for multr to read the form
+ * 
+ */
 app.post(
   "/showcase",
   authenticateTokenFromCookie,
   authorizeCurrentUser,
   showcaseUpload.single("photo"),
+  [//i want to add a validator for the title and description as well
+    //when a user is uploading a picture, they can manually put the title
+    //of what are they trying to upload + the description(optional only).
+    //https://express-validator.github.io/docs/api/validation-chain/#notempty   
+    //validator chains
+    //notEmpty -> checks if the title is NOT EMPTY
+    //withMessage -> will set the error message if .notEmpty fails
+    //.custom 
+    body('title').notEmpty().withMessage('Title is required').custom((val) => {
+      if(val.length > 50) {
+        throw new Error ("Title must be only 50 characters or less")
+      }
+      return true;
+    }),
+    //since i want the description to be 'only optional'
+    //i dont need a validator here but i want to limit 
+    //the user's description?
+    //https://express-validator.github.io/docs/api/validation-chain/#optional
+    body('description').optional().custom ((val) => {
+      if(val.length > 250 ){
+        throw new Error ("Description must only 250 characters or less")
+      }
+      return true;
+    })
+  ],
 async (req, res) => {
   //Multer adds req.file when a valid file is uploaded
   if(!req.file) {
     //if no file arrived, show to upload form again with an error message..
     error.push({msg: 'Please upload a valid image file.'})
-  }
+  } 
+
 }
 
 

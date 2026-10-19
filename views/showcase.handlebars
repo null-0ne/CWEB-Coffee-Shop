@@ -1,6 +1,6 @@
 <h1>{{title}}</h1>
 
-{{#if error}}
+{{#if errors}}
   <p class="error">Upload failed{{error}}</p>
 {{/if}}
 
@@ -13,8 +13,21 @@
   />
 {{/if}}
 
-<form action="/upload" method="POST" enctype="multipart/form-data">
+{{!--The idea is that only the logged-users can upload with title and description for their photo--}}
+{{#if user}}
+<h1>Upload Photo</h1>
+{{!--same with the example must use enctype="multipart/formdata" required for uploading photo using multer--}}
+<form action="/showcase" method="POST" enctype="multipart/form-data">
+  <label>Title</label>
+  <input type ="text" name="title" value="{{oldInput.title}}" required />
+
+  <label>Description (optional) </label>
+  <textarea name = "description">{{oldInput.description}}</textarea>
+
   <label>Select image</label>
   <input type="file" name="photo" required />
   <button type="submit">Upload</button>
 </form>
+{{else}}
+<p><a href = "/login">Login</a> to upload a photo</p>
+{{/if}}
