@@ -7,6 +7,8 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source");
 const { Showcase } = require("./entity/Showcase"); // showcase database
+const { getSystemErrorMessage } = require("util");
+const { error } = require("console");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -49,6 +51,21 @@ const hbs = exphbs.create({
   layoutsDir: "./views/layouts",
   helpers: {
     eq: (a, b) => a === b, //simple equality helper function
+    //helper function for the photos that'll convert the number of bytes in megabytes to 1 decimal place
+    //for example: if the photo is 2,097,123 or 1,543,210
+    //the output will be : 2 MB --- 1.5 MB
+    formatSizeMb: (bytes) => {
+      const mb = Number(bytes) / (1024 * 1024);
+      return `${mb.toFixed(1)} MB`
+    },
+    //helper function --> formats the date and time
+    //say we uploaded the picture right now -> "2026-10-18T18:00:00"
+    //output will be : 2026-10-18, 6:00 p.m.
+    formatShortDate: (dateString) => 
+      new Intl.DateTimeFormat("en-CA", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }).format(new Date(dateString)),
   },
 });
 app.engine("handlebars", hbs.engine);
@@ -108,7 +125,8 @@ const showcaseUpload = multer({
     if (file.mimetype.startsWith("image/")) {
       callBack(null, true);
     } else {
-      callBack(new Error("Only image file are allowed"));
+      //reject the image if invalid, on the post -> it'll just show "Please upload a valid image file"
+      callBack(null, false);
     }
   },
 });
@@ -133,7 +151,7 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
       (photo) =>
         // if i want to search using the title or description?
         photo.title.toLowerCase().includes(searchLower) ||
-        photo.description.toLowerCase().includes(searchLower), //need fixing -> description can be null so using the tolowercase function to a null will crash
+        (photo.description && photo.description.toLowerCase().includes(searchLower)), //check if the description exist first before searching it
     );
   }
 
@@ -142,12 +160,12 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
     if (sort === "size") {
       // smallest files first
       return a.size - b.size;
-    } else if (sort === "title") {
-      // alphabetical by title
-      return a.title.localeCompare(b.title);
-    } else {
-      // default - newest uploads first
+    } else if (sort === "date") {
+      //newest uploads first
       return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+    } else {
+      //default sort in alphabetical order by the title
+      return a.title.localeCompare(b.title);
     }
   });
 
@@ -159,15 +177,25 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 });
 
+
+//TODO: Work on post
 app.post(
   "/showcase",
   authenticateTokenFromCookie,
   authorizeCurrentUser,
   showcaseUpload.single("photo"),
+async (req, res) => {
+  //Multer adds req.file when a valid file is uploaded
+  if(!req.file) {
+    //if no file arrived, show to upload form again with an error message..
+    error.push({msg: 'Please upload a valid image file.'})
+  }
+}
+
+
 );
 
-//TODO: Work on post
-app.post("/showcase") 
+
 
 /*********** Start the server *************/
 app.listen(PORT, () => {
