@@ -1,16 +1,13 @@
 <h1>{{title}}</h1>
-
-{{#if errors}}
-  <p class="error">Upload failed{{error}}</p>
-{{/if}}
-
-{{#if success}}
-  <p class="success">File uploaded successfully: {{uploadedFile}}</p>
-  <img
-    src="/images/{{uploadedFile}}"
-    alt="Uploaded image"
-    style="width: auto; max-height: auto; "
-  />
+{{!--Errors from the validator plus the missing or invalid file checks--}}
+{{#if errors.length}}
+  <div class="error">
+    <ul>
+      {{#each errors}}
+        <li>{{this.msg}}</li>
+      {{/each}}
+    </ul>
+  </div>
 {{/if}}
 
 {{!--The idea is that only the logged-users can upload with title and description for their photo--}}
@@ -30,4 +27,35 @@
 </form>
 {{else}}
 <p><a href = "/login">Login</a> to upload a photo</p>
+{{/if}}
+
+{{#if hasPhotos}}
+<h2>Gallery</h2>
+
+{{!--t0d0: /get with the search + sort form --}}
+<form action ="/showcase" method="GET">
+  <input type="search" placeholder="Search by title or description" value="{{oldInput.search}}" />
+  <select name="sort">
+    <option value ="title" {{#if (eq oldInput.sort "title")}}selected {{/if}}>Sort By Title</option>
+    <option value ="date" {{#if (eq oldInput.sort "date")}}selected {{/if}}>Sort By Newest</option>
+  </select>
+  <button type ="submit">Sort</button>
+
+  {{#each photos}}
+    <div class="card">
+      <span>
+        <h3>{{this.title}}</h3>
+        {{#if this.description}}
+          <p>{{this.description}}</p>
+        {{/if}}
+        <p>Type: {{this.fileName}}</p>
+        <p>Size: {{this.size}}</p>
+        <p>Uploaded By: {{this.uploadedBy}}</p>
+        <p>Uploaded At: {{this.uploadedAt}}</p>
+      </span>
+      <span>
+        <img src ="/images/{{this.fileName}}" alt ="{{this.title}}" style="width: auto; max-height 10em;"/>
+      </span>
+    </div>
+  {{/each}}
 {{/if}}

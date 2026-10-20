@@ -102,7 +102,6 @@ app.get("/", (req, res) => {
 AppDataSource.initialize()
   .then(() => {
     console.log("DB Connected ");
-    const showcaseRepository = AppDataSource.getRepository(Showcase);
   })
   .catch((err) => console.error(err));
 
@@ -168,6 +167,7 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 
   res.render("showcase", {
+    hasPhotos: photos.length > 0, // same logic we used for example lo2. using this below the upload button
     title: "Showcase Gallery",
     user: req.user, // same name Rylan uses
     photos: filteredPhotos,
@@ -215,16 +215,68 @@ app.post(
     })
   ],
 async (req, res) => {
+
+  //for validation express i need to collect the error checks 
+  //https://express-validator.github.io/docs/6.0.0/validation-result-api/
+  const errors = validationResult(req).array();
+
   //Multer adds req.file when a valid file is uploaded
   if(!req.file) {
     //if no file arrived, show to upload form again with an error message..
-    error.push({msg: 'Please upload a valid image file.'})
+    errors.push({msg: 'Please upload a valid image file.'}); // putting this error inside our errors arrays if file is not valid
   } 
 
+  if(errors.length > 0){
+    //if something is wrong, itll just show the page again with the errors
+    const photos = await AppDataSource.getRepository(Showcase).find();
+    //so the photos that'll be shown is when it was uploaded - newest photos first
+    photos.sort((a,b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+
+    //render the showcase handlebar again
+    return res.render("showcase", {
+      title: "Showcase Gallery",
+      user: req.user,
+      photos: photos,
+      errors: errors,
+      oldInput: req.body, // this part will just keep what the user typed in the title and description
+    });
+  }
+
+  //i need to build the photo info base on my database, must match the showcase entity columns or it'll crash
+  //id and uploadedAt will be automtically filled in bec of typeORM
+  const photoInfo = {
+    title: req.body.title,
+    description: req.body.description,
+    fileName: req.file.filename,
+    mimeType: req.file.mimetype,
+    size: req.file.size,
+    uploadedBy: req.user.userName // i got this from rylan story which he uses "userName" so i can get the user who uploaded the pic
+  }
+
+  //now if no errors and it was a successful upload
+  //need to save the info to the data base
+  await AppDataSource.getRepository(Showcase).save(photoInfo);
+  //debugger -- delete later
+  console.log('New showcase photo: ', photoInfo)
+
+  //this will just redirect or refresh the page so the new photo shows up
+  res.redirect("/showcase")
+    
 }
 
 
 );
+
+//for testing - need an acount to be able to access my /showcase page -- DELETE LATER
+app.get("/test-login", (req, res) => {
+  // fake user, same shape as Rylan's token { id, userName }
+  const token = jwt.sign({ id: 1, userName: "Kevin" }, SECRET_KEY, { expiresIn: "7d" });
+
+  // save the token in an HttpOnly cookie, same as Rylan's login
+  res.cookie("token", token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+  res.redirect("/showcase");
+});
 
 
 
