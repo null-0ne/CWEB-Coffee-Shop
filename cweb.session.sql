@@ -10,34 +10,28 @@ START TRANSACTION;
 SET time_zone = "+00:00";
 
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+
 
 -- --------------------------------------------------------
 DROP TABLE IF EXISTS `Menu`;
+
 
 --
 -- Table structure for table `Menu`
 --
 
 CREATE TABLE `Menu` (
-  `id` int(11) NOT NULL,
-  `itemName` varchar(255) NOT NULL,
-  `type` varchar(255) NOT NULL
+  `id` int NOT NULL PRIMARY KEY,
+  `title` varchar(255) NOT NULL,
+  `type` varchar(255) NOT NULL,
+  `userId` int NOT NULL CONSTRAINTS  FOREIGN KEY REFERENCES users(id),
+    `price`decimal(10, 2),
+  `uploadDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 );
  
 
--- --
--- -- Indexes for dumped tables
--- --
 
 
--- -- Indexes for table `Menu`
-
-ALTER TABLE `Menu`
-  ADD PRIMARY KEY (`id`);
 
 
 
@@ -50,11 +44,11 @@ ALTER TABLE `Menu`
 
 
 -- -- Seed Menu Data
-INSERT INTO `Menu` (`id`, `itemName`, `type`) VALUES
-(1, 'Black Coffee', 'drink'),
-(2, 'Croissant', 'pastry'),
-(3, 'Latte', 'drink'),
-(4, 'Chocolate Muffin', 'muffin');
+--INSERT INTO `Menu` (`id`, `name`, `type`, `userId`, `price`) VALUES
+--(1, 'Black Coffee', 'drink', 1, 3.50),
+--(2, 'Croissant', 'pastry', 1, 3.50),
+--(3, 'Latte', 'drink', 1, 3.50),
+--(4, 'Chocolate Muffin', 'muffin', 1, 3.50);
 
 COMMIT;
 

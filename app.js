@@ -7,7 +7,6 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source");
 const { Menu } = require("./entity/Menu"); // showcase database
-const { SimpleConsoleLogger } = require("typeorm");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -33,6 +32,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+//Database Connection
+AppDataSource.initialize()
+    .then(() => {
+        console.log("DB Connected ");
+    })
+    .catch((err) => console.error(err));
+
 /*********** HOME PAGE ************
  * URL: http://localhost:8000/
  * Home page: displays learning concepts and sample student names.
@@ -53,46 +59,39 @@ app.get("/", (req, res) => {
     });
 });
 
-//Database Connection
-AppDataSource.initialize()
-    .then(() => {
-        console.log("DB Connected ");
-    })
-    .catch((err) => console.error(err));
-
 /*********** TOKEN VALIDATION ************
 
  ***********************************/
 
 // Middleware to authenticate JWT from cookie
-function authenticateTokenFromCookie(req, res, next) {
-    const token = req.cookies.token;
-    // If the token doesn't exist ( user is not logged in )
-    // do nothing and move on from middleware
-    if (!token) {
-        //res.status(401).json({ error: 'Missing token' });
-        return next();
-    } //return res.status(401).json({ error: 'Missing token' });
+// function authenticateTokenFromCookie(req, res, next) {
+//     const token = req.cookies.token;
+//     // If the token doesn't exist ( user is not logged in )
+//     // do nothing and move on from middleware
+//     if (!token) {
+//         //res.status(401).json({ error: 'Missing token' });
+//         return next();
+//     } //return res.status(401).json({ error: 'Missing token' });
 
-    jwt.verify(token, SECRET_KEY, (err, user) => {
-        if (err) return res.status(403).json({ error: "Invalid token" });
-        req.user = user;
-        // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
-        next();
-    });
-}
+//     jwt.verify(token, SECRET_KEY, (err, user) => {
+//         if (err) return res.status(403).json({ error: "Invalid token" });
+//         req.user = user;
+//         // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
+//         next();
+//     });
+// }
 
 //function which sends the user to the log in screen if they are not authorize user
 //middleware
-function authorizeCurrentUser(req, res, next) {
-    if (!req.user) {
-        return res.redirect("/login");
-    }
-    next();
-}
+// function authorizeCurrentUser(req, res, next) {
+//     if (!req.user) {
+//         return res.redirect("/login");
+//     }
+//     next();
+// }
 
 //DISPLAY MENU
-app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
+app.get("/menu", async (req, res) => {
     const menuRepository = await AppDataSource.getRepository(Menu);
     const menuItems = await menuRepository.find();
     console.log(menuItems);
@@ -112,9 +111,9 @@ app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
             filteredMenuItems = menuItems.filter((item) =>
                 item.type.includes(searchLower),
             );
-        } else if (sort === "name") {
+        } else if (sort === "title") {
             filteredMenuItems = menuItems.filter((item) =>
-                item.itemName.toLowerCase().includes(searchLower),
+                item.name.toLowerCase().includes(searchLower),
             );
         }
     }
@@ -130,8 +129,6 @@ app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
 //ADD NEW MENU ITEM
 app.post(
     "/menu",
-    authenticateTokenFromCookie,
-    authorizeCurrentUser,
     [
         //middleware - express-validator uses to create the "rules"
         body("itemName").isLength({ min: 2 }).isString(),
