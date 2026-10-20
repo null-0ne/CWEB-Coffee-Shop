@@ -1,24 +1,35 @@
-const { EntitySchema } = require('typeorm');
+const { EntitySchema } = require("typeorm");
 
 module.exports.Menu = new EntitySchema({
-    name: 'Menu',
-    tableName: 'Menu',
+    name: "Menu",
+    tableName: "menu",
     columns: {
         id: {
             primary: true,
-            type: 'int',
+            type: "int",
             generated: true,
         },
-        firstName: {
-            type: 'varchar',
+        userId:{
+            type: "int",
+            nullable: false
+        },
+        title: {
+            type: "varchar",
             length: 255,
+             nullable: false
         },
-        lastName: {
-            type: 'varchar',
+        category: {
+            type: "varchar",
             length: 255,
+             nullable: false
         },
-        age: {
-            type: 'int',
+        createDate:{
+            type: "timestamp",
+            createDate: true
         },
+        price: {
+            type: "decimal",
+            nullable: false
+        }
     },
 });
