@@ -15,19 +15,23 @@ module.exports.User = new EntitySchema({
         },
         email:{
             type: 'varchar',
-            length: 255
+            length: 255,
+            nullable: false
         },
         password:{
             type: 'varchar',
-            length: 255
+            length: 255,
+            nullable: false
         },
         firstName: {
             type: 'varchar',
-            length: 30
+            length: 30,
+            nullable: false
         },
         lastName: {
             type: 'varchar',
-            length: 50
+            length: 50,
+            nullable: false
         }
     }
 });

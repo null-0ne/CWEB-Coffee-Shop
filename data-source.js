@@ -11,5 +11,5 @@ module.exports.AppDataSource = new DataSource({
     database: 'cweb',   // make sure this DB exists
     synchronize: true,              // auto-create tables
     logging: false,
-    entities: [User, Order, Item, OrderItems],
+    entities: [User],
 });
