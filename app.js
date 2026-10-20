@@ -62,33 +62,7 @@ app.get("/", (req, res) => {
 /*********** TOKEN VALIDATION ************
 
  ***********************************/
-
-// Middleware to authenticate JWT from cookie
-// function authenticateTokenFromCookie(req, res, next) {
-//     const token = req.cookies.token;
-//     // If the token doesn't exist ( user is not logged in )
-//     // do nothing and move on from middleware
-//     if (!token) {
-//         //res.status(401).json({ error: 'Missing token' });
-//         return next();
-//     } //return res.status(401).json({ error: 'Missing token' });
-
-//     jwt.verify(token, SECRET_KEY, (err, user) => {
-//         if (err) return res.status(403).json({ error: "Invalid token" });
-//         req.user = user;
-//         // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
-//         next();
-//     });
-// }
-
-//function which sends the user to the log in screen if they are not authorize user
-//middleware
-// function authorizeCurrentUser(req, res, next) {
-//     if (!req.user) {
-//         return res.redirect("/login");
-//     }
-//     next();
-// }
+//ADD!!
 
 //DISPLAY MENU
 app.get("/menu", async (req, res) => {
