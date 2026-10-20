@@ -30,6 +30,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Datasource
+AppDataSource.initialize().then(() => {
+  console.log("Database connected.")
+}).catch(err => console.log(err));
+
+app.get('/', async (req, res) => {
+  try {
+    const submissionRepo = AppDataSource.getRepository(Submission);
+    const submissions = await submissionRepo.find();
+  } catch (err) {
+    console.error(err);
+    res.send("Error fetching data");
+  }
+});
+
 /*********** HOME PAGE ************
  * URL: http://localhost:8000/
  * Home page: displays learning concepts and sample student names.

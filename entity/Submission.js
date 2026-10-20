@@ -10,7 +10,8 @@ module.exports.Submission = new EntitySchema({
             generated: true
         },
         userID: {
-            type: "int"
+            type: "int",
+            nullable: false
         },
         formType: {
             type: "varchar2(20)"
@@ -22,7 +23,8 @@ module.exports.Submission = new EntitySchema({
             type: "boolean"
         }
         respondedOn: {
-            type: "timestamp"
+            type: "timestamp",
+            createDate: true
         }
     }
 })
