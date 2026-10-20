@@ -154,12 +154,9 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
 
   //sort the photos based on what the user picked
   filteredPhotos.sort((a, b) => {
-    if (sort === "size") {
-      // smallest files first
-      return a.size - b.size;
-    } else if (sort === "date") {
+    if (sort === "date") {
       //newest uploads first
-      return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+      return new Date(b.uploadDate) - new Date(a.uploadDate);
     } else {
       //default sort in alphabetical order by the title
       return a.title.localeCompare(b.title);
@@ -167,7 +164,7 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 
   res.render("showcase", {
-    hasPhotos: photos.length > 0, // same logic we used for example lo2. using this below the upload button
+    hasPhotos: photos.length > 0 , // same logic we used for example lo2. using this below the upload button
     title: "Showcase Gallery",
     user: req.user, // same name Rylan uses
     photos: filteredPhotos,
@@ -230,10 +227,11 @@ async (req, res) => {
     //if something is wrong, itll just show the page again with the errors
     const photos = await AppDataSource.getRepository(Showcase).find();
     //so the photos that'll be shown is when it was uploaded - newest photos first
-    photos.sort((a,b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    photos.sort((a,b) => new Date(b.uploadDate) - new Date(a.uploadDate));
 
     //render the showcase handlebar again
     return res.render("showcase", {
+      hasPhotos: photos.length > 0,
       title: "Showcase Gallery",
       user: req.user,
       photos: photos,
@@ -248,9 +246,7 @@ async (req, res) => {
     title: req.body.title,
     description: req.body.description,
     fileName: req.file.filename,
-    mimeType: req.file.mimetype,
-    size: req.file.size,
-    uploadedBy: req.user.userName // i got this from rylan story which he uses "userName" so i can get the user who uploaded the pic
+    userId: req.user.id // i got this from rylan story which he uses "userName" so i can get the user who uploaded the pic
   }
 
   //now if no errors and it was a successful upload

@@ -2,7 +2,7 @@ const { EntitySchema } = require('typeorm');
 
 module.exports.Showcase = new EntitySchema({
     name: 'Showcase',
-    tableName: 'Showcase',
+    tableName: 'showcase',
     columns: {
         id: {
             primary: true,
@@ -11,24 +11,16 @@ module.exports.Showcase = new EntitySchema({
         },
         title: {
             type: 'varchar',
-            length: 255,
+            length: 60,
         },
         fileName: {
             type: 'varchar',
             length: 255,
         },
-        mimeType: {
-            type: 'varchar',
-            length: 50,
-        },
-        size: {
+        userId : {
             type: 'int',
         },
-        uploadedBy : {
-            type: 'varchar',
-            length:255,
-        },
-        uploadedAt : {
+        uploadDate : {
             type: 'datetime',
             createDate: true,
         },
