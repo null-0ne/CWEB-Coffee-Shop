@@ -13,40 +13,40 @@ SET time_zone = "+00:00";
 
 -- --------------------------------------------------------
 
-DROP TABLE IF EXISTS `review`;
+-- DROP TABLE IF EXISTS `review`;
 
 
---
--- Table structure for table `books`
---
+-- --
+-- -- Table structure for table `books`
+-- --
 
-CREATE TABLE `review` (
-  `id` int(11) NOT NULL,
-  `rating` int(11) NOT NULL,
-  `review` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+-- CREATE TABLE `review` (
+--   `id` int(11) NOT NULL,
+--   `rating` int(11) NOT NULL,
+--   `review` varchar(255) NOT NULL,
+--   `name` varchar(255) NOT NULL
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `books`
 --
 
-INSERT INTO `review` (`id`, `rating`, `review`, `name`) VALUES
-(1, 5, 'Good', 'Sucha'),
-(2, 5, 'Good', 'Sucha'),
-(3, 5, 'Good', 'Sucha'),
-(4, 5, 'Good', 'Sucha'),
-(5, 5, 'Good', 'Sucha'),
-(6, 5, 'Good', 'Sucha'),
-(7, 5, 'Good', 'Sucha'),
-(8, 5, 'Good', 'Sucha'),
-(9, 5, 'Good', 'Sucha'),
-(10, 5, 'Good', 'Sucha'),
-(11, 5, 'Good', 'Sucha');
+INSERT INTO `reviews` (`UserId`, `rating`, `review`, `visitDate`) VALUES
+(1, 5, 'Good', 2026-10-20),
+(2, 5, 'Good', 2026-10-20),
+(3, 5, 'Good', 2026-10-20),
+(4, 5, 'Good', 2026-10-20),
+(5, 5, 'Good', 2026-10-20),
+(6, 5, 'Good', 2026-10-20),
+(7, 5, 'Good', 2026-10-20),
+(8, 5, 'Good', 2026-10-20),
+(9, 5, 'Good', 2026-10-20),
+(10, 5, 'Good', 2026-10-20),
+(11, 5, 'Good', 2026-10-20);
 
 
-ALTER TABLE `review`
-  ADD PRIMARY KEY (`id`);
+-- ALTER TABLE `review`
+--   ADD PRIMARY KEY (`id`);
 --   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 

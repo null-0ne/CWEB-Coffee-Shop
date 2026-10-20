@@ -6,7 +6,9 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source")
 
-
+const{reviews} = require('./fixtures/data-seed')
+const {Review} = require('./entity/Review');
+const reviewRepository = AppDataSource.getRepository(Review);
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -35,9 +37,13 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Connect DB
-AppDataSource.initialize().then(() => {
+AppDataSource.initialize().
+then(() => {
     console.log("DB Connected ");
-}).catch(err => console.error(err));
+    console.log(reviews);
+    return reviewRepository.save(reviews);
+})
+.catch(err => console.error(err));
 
 
 
@@ -69,20 +75,71 @@ app.get("/reviews", async (req, res) => {
       return res.redirect("http://localhost:8000/");
     }
     try {
-      const reviewRepository = AppDataSource.getRepository(Review);
-      const reviews = reviewRepository.find();
+      const reviewsData = await reviewRepository.find({
+        order: {
+          reviewDate: "DESC"
+        }
+      });
       
-
       res.render("reviews", {
         title: "Reviews and Ratings",
-        reviews: reviews
+        reviews: reviewsData
       });
+      
 
   } catch (err) {
     console.error(err);
     res.send("Error fetching data");
   }
 });
+
+app.post(
+  "/reviews",
+  [
+    body("rating").notEmpty().withMessage("Give Rating"),
+    body("review").notEmpty().withMessage("You must enter review"),
+    body("date").notEmpty().withMessage("You must enter the Visited Date")
+  ],
+  async (req, res) => {
+    if(!req.cookies.id)
+    {
+      return res.redirect("http://localhost:8000/");
+    }
+    const errors = validationResult(req);
+    //console.log(errors);
+    if (!errors.isEmpty()) {
+      // Re-render form with errors and old input
+      return res.render("reviews", {
+        errors: errors.array(),
+        oldInput: req.body,
+      });
+    }
+
+    try {
+
+      
+      const newReview = await reviewRepository.create({
+        userId: req.cookies.id,
+        rating: req.body.rating,
+        review: req.body.review,
+        visitDate: req.body.date
+      });
+      await reviewRepository.save(newReview);
+      
+      const reviewsData =  await reviewRepository.find({
+        order: {
+          reviewDate: "DESC"
+        }
+      });
+      return res.render("reviews", { 
+        reviews: reviewsData
+      });
+      //res.status(201).json(newReview);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create Review: ' + error});
+    }
+  },
+);
 
 //#endregion
 
