@@ -11,35 +11,8 @@ const { Showcase } = require("./entity/Showcase"); // showcase database
 // Create the Express app and configure key app-level settings.
 const app = express();
 const PORT = 8000;
-const SECRET_KEY = "mysecret"; //came from Rylan Story, need for JWT
 
-//Temporary, just copied this from page 1 so i can test my own page.
-// Middleware to authenticate JWT from cookie
-function authenticateTokenFromCookie(req, res, next) {
-  const token = req.cookies.token;
-  // If the token doesn't exist ( user is not logged in )
-  // do nothing and move on from middleware
-  if (!token) {
-    //res.status(401).json({ error: 'Missing token' });
-    return next();
-  } //return res.status(401).json({ error: 'Missing token' });
 
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({ error: "Invalid token" });
-    req.user = user;
-    // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
-    next();
-  });
-}
-
-//function which sends the user to the log in screen if they are not authorize user
-//middleware
-function authorizeCurrentUser(req, res, next) {
-  if (!req.user) {
-    return res.redirect("/login");
-  }
-  next();
-}
 
 /******************************** CONFIGURE HANDLEBARS *******************************/
 // The custom helpers make it easier to format data in templates.
@@ -49,13 +22,6 @@ const hbs = exphbs.create({
   layoutsDir: "./views/layouts",
   helpers: {
     eq: (a, b) => a === b, //simple equality helper function
-    //helper function for the photos that'll convert the number of bytes in megabytes to 1 decimal place
-    //for example: if the photo is 2,097,123 or 1,543,210
-    //the output will be : 2 MB --- 1.5 MB
-    formatSizeMb: (bytes) => {
-      const mb = Number(bytes) / (1024 * 1024);
-      return `${mb.toFixed(1)} MB`
-    },
     //helper function --> formats the date and time
     //say we uploaded the picture right now -> "2026-10-18T18:00:00"
     //output will be : 2026-10-18, 6:00 p.m.
@@ -63,6 +29,7 @@ const hbs = exphbs.create({
       new Intl.DateTimeFormat("en-CA", {
         dateStyle: "short",
         timeStyle: "short",
+        timeZone: "America/Regina", //saskatchjewan time, for somereason without these im getting UTC so different time
       }).format(new Date(dateString)),
   },
 });
@@ -75,14 +42,12 @@ app.use(express.static("./public")); // make files and folder in the public fold
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-//Load the authenticated user from the JWT cookie for every request
-//app.use(setRequestUserIfTokenCookieExists);
+
 
 // Connect DB
 AppDataSource.initialize().then(() => {
     console.log("DB Connected ");
 }).catch(err => console.error(err));
-
 
 
 /*********** HOME PAGE ************
@@ -105,14 +70,17 @@ app.get("/", (req, res) => {
   });
 });
 
-//Database Connection
-AppDataSource.initialize()
-  .then(() => {
-    console.log("DB Connected ");
-  })
-  .catch((err) => console.error(err));
+//------------Story 4 - Showcase Gallery - Multer - Kevin Obillo -------------
 
-//Story 4 - Showcase Gallery - Multer - Kevin Obillo
+//function which sends the user to the log in screen if they are not authorize user
+//middleware
+function authorizeCurrentUser(req, res, next) {
+  if (!req.user) {
+    return res.redirect("/login");
+  }
+  next();
+}
+
 
 //store uploaded files on disk
 const storage = multer.diskStorage({
@@ -137,14 +105,17 @@ const showcaseUpload = multer({
 
 //render showcase page
 //show all showcase photos from the database, with the optional search and sorting.
-//show case photos can be viewed by authorize/logged in users only
 // story 1 for authentication has this -- authenticateTokenFromCookie function (story 1)
 app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   //for sorting/filter
   const { search, sort } = req.query;
 
   //need to get hte photos from the showcase table
-  const photos = await AppDataSource.getRepository(Showcase).find();
+  const photos = await AppDataSource.getRepository(Showcase).find(
+    {
+      relations: { user : true}, // this is going to load the uploader from user table
+    }
+  );
 
   let filteredPhotos = photos;
 
@@ -161,12 +132,12 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
 
   //sort the photos based on what the user picked
   filteredPhotos.sort((a, b) => {
-    if (sort === "date") {
+    if (sort === "title") {
+      //sort in alphabetical order by the title
+      return a.title.localeCompare(b.title);
+    } else {
       //newest uploads first
       return new Date(b.uploadDate) - new Date(a.uploadDate);
-    } else {
-      //default sort in alphabetical order by the title
-      return a.title.localeCompare(b.title);
     }
   });
 
@@ -179,8 +150,6 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 });
 
-
-//TODO: Work on post
 /**
  * Only logged in users can upload pictures.
  * authenticateTokenFromCookie -> this will set the req.user
@@ -232,7 +201,11 @@ async (req, res) => {
 
   if(errors.length > 0){
     //if something is wrong, itll just show the page again with the errors
-    const photos = await AppDataSource.getRepository(Showcase).find();
+    const photos = await AppDataSource.getRepository(Showcase).find(
+      {
+        relations: {user : true}, // added this aswell for the relations of my showcase
+      }
+    );
     //so the photos that'll be shown is when it was uploaded - newest photos first
     photos.sort((a,b) => new Date(b.uploadDate) - new Date(a.uploadDate));
 
@@ -248,12 +221,12 @@ async (req, res) => {
   }
 
   //i need to build the photo info base on my database, must match the showcase entity columns or it'll crash
-  //id and uploadedAt will be automtically filled in bec of typeORM
+  //uploadDate will be automtically filled in bec of typeORM
   const photoInfo = {
     title: req.body.title,
     description: req.body.description,
     fileName: req.file.filename,
-    userId: req.user.id // i got this from rylan story which he uses "userName" so i can get the user who uploaded the pic
+    userId: req.user.id // id of the logged in user, from Rylans token
   }
 
   //now if no errors and it was a successful upload
@@ -266,45 +239,10 @@ async (req, res) => {
   res.redirect("/showcase")
     
 }
-
-
 );
 
-//for testing - need an acount to be able to access my /showcase page -- DELETE LATER
-app.get("/test-login", (req, res) => {
-  // fake user, same shape as Rylan's token { id, userName }
-  const token = jwt.sign({ id: 1, userName: "Kevin" }, SECRET_KEY, { expiresIn: "7d" });
+//-------------------------END OF STORY 4 --------------------------------
 
-  // save the token in an HttpOnly cookie, same as Rylan's login
-  res.cookie("token", token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
-
-  res.redirect("/showcase");
-});
-
-//#region Sucha Story here
-
-app.get("/reviews", async (req, res) => {
-    if(!req.cookies.id)
-    {
-      return res.redirect("http://localhost:8000/");
-    }
-    try {
-      const reviewRepository = AppDataSource.getRepository(Review);
-      const reviews = reviewRepository.find();
-      
-
-      res.render("reviews", {
-        title: "Reviews and Ratings",
-        reviews: reviews
-      });
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error fetching data");
-  }
-});
-
-//#endregion
 
 
 

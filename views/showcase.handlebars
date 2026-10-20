@@ -1,14 +1,4 @@
 <h1>{{title}}</h1>
-{{!--Errors from the validator plus the missing or invalid file checks--}}
-{{#if errors.length}}
-  <div class="error">
-    <ul>
-      {{#each errors}}
-        <li>{{this.msg}}</li>
-      {{/each}}
-    </ul>
-  </div>
-{{/if}}
 
 {{!--The idea is that only the logged-users can upload with title and description for their photo--}}
 {{#if user}}
@@ -23,6 +13,17 @@
 
   <label>Select image</label>
   <input type="file" name="photo" required />
+
+{{!--Errors from the validator plus the missing or invalid file checks--}}
+{{#if errors.length}}
+  <div class="error">
+    <ul>
+      {{#each errors}}
+        <li>{{this.msg}}</li>
+      {{/each}}
+    </ul>
+  </div>
+{{/if}}
   <button type="submit">Upload</button>
 </form>
 {{else}}
@@ -34,26 +35,27 @@
 
 {{!--t0d0: /get with the search + sort form --}}
 <form action ="/showcase" method="GET">
-  <input type="search" placeholder="Search by title or description" value="{{oldInput.search}}" />
+  <input type="search" name="search" placeholder="Search by title or description" value="{{oldInput.search}}" />
   <select name="sort">
     <option value ="title" {{#if (eq oldInput.sort "title")}}selected {{/if}}>Sort By Title</option>
     <option value ="date" {{#if (eq oldInput.sort "date")}}selected {{/if}}>Sort By Newest</option>
   </select>
-  <button type ="submit">Sort</button>
+  <button type ="submit">Accept</button>
+</form>
 
   {{#each photos}}
-    <div class="card">
+    <div class="showcase-card">
       <span>
         <h3>{{this.title}}</h3>
         {{#if this.description}}
-          <p>{{this.description}}</p>
+          <p>Description: {{this.description}}</p>
         {{/if}}
+        <p>Uploaded By: {{this.user.lastName}}, {{this.user.firstName}}</p>
+        <p>Uploaded At: {{formatShortDate this.uploadDate}}</p>
         <p>File Name: {{this.fileName}}</p>
-        <p>Uploaded By: {{this.userId}}</p>
-        <p>Uploaded At: {{this.uploadDate}}</p>
       </span>
       <span>
-        <img src ="/images/{{this.fileName}}" alt ="{{this.title}}" style="width: auto; max-height 10em;"/>
+        <img src ="/images/{{this.fileName}}" alt ="{{this.title}}"/>
       </span>
     </div>
   {{/each}}
