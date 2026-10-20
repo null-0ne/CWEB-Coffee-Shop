@@ -78,22 +78,29 @@ app.use(cookieParser());
 //Load the authenticated user from the JWT cookie for every request
 //app.use(setRequestUserIfTokenCookieExists);
 
+// Connect DB
+AppDataSource.initialize().then(() => {
+    console.log("DB Connected ");
+}).catch(err => console.error(err));
+
+
+
 /*********** HOME PAGE ************
  * URL: http://localhost:8000/
  * Home page: displays learning concepts and sample student names.
  ***********************************/
 app.get("/", (req, res) => {
   res.render("home", {
-    title: "INSERT YOUR APP NAME HERE",
+    title: "Coffee Shop Order Hub",
 
     students: [
       //TODO Add you team names alphabetically by first name (include First letter of Family name)
-      { name: "Garrett A.", section: "Contact & Hours" },
-      { name: "Kevin O.", section: "Showcase Gallery - Multer" },
-      { name: "Roseanne A.", section: "Custom Orders" },
-      { name: "Rylan W.", section: "Auth & Profile" },
-      { name: "Sam C.", section: "Menu Items" },
-      { name: "Sucha S.", section: "Customer Reviews" },
+      { name: "Garret A.", section: "Page 6 - Contact & Hours" },
+      { name: "Kevin O.", section: "Page 4 - Showcase Gallery - Multer" },
+      { name: "Roseman A.", section: "Page 3 - Custom Orders" },
+      { name: "Rylan W.", section: "Page 1 - Auth & Profile" },
+      { name: "Samuel C.", section: "Page 2 - Menu Items" },
+      { name: "Sucha S.", section: "Page 5 - Customer Reviews" },
     ],
   });
 });
@@ -274,9 +281,35 @@ app.get("/test-login", (req, res) => {
   res.redirect("/showcase");
 });
 
+//#region Sucha Story here
+
+app.get("/reviews", async (req, res) => {
+    if(!req.cookies.id)
+    {
+      return res.redirect("http://localhost:8000/");
+    }
+    try {
+      const reviewRepository = AppDataSource.getRepository(Review);
+      const reviews = reviewRepository.find();
+      
+
+      res.render("reviews", {
+        title: "Reviews and Ratings",
+        reviews: reviews
+      });
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error fetching data");
+  }
+});
+
+//#endregion
+
 
 
 /*********** Start the server *************/
 app.listen(PORT, () => {
-  console.log(`Midterm Project running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
+

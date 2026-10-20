@@ -71,15 +71,14 @@ The client will evaluate both the business/user experience and the technical imp
 
 ---
 
-## 6. Some Suggested Project Ideas
-
-### **Suggestion 4: Bakery / Coffee Shop Order Hub**
-* **Member 1 (Page 1 - Auth & Profile):** `/login` & `/profile` view. Customer sign-up, JWT cookie authentication, order history view. - Rylan
-* **Member 2 (Page 2 - Menu Items):** `/menu` view. Item catalog filterable via query strings (drinks/pastries), new item form. - Sam
-* **Member 3 (Page 3 - Custom Orders):** `/custom-order` view. Catering request form (date selection, quantities, special instructions). - Zan
-* **Member 4 (Page 4 - Showcase Gallery - Multer):** `/showcase` view. Upload photos of special baked goods, gallery display. - Kevin
-* **Member 5 (Page 5 - Customer Reviews):** `/reviews` view. Submit star ratings and feedback, display latest customer reviews. - Sucha
-* **Member 6 (Page 6 - Contact & Hours):** `/contact` view. Inquiry submission form, store hours and location details. - Garrett
+### ** Coffee Shop Order Hub**
+* **Member 1 (Page 1 - Auth & Profile):** `/login` & `/profile` view. Customer sign-up, JWT cookie authentication, order history view.
+* **Member 2 (Page 2 - Menu Items):** `/menu` view. Item catalog filterable via query strings (drinks/pastries), new item form.
+* **Member 3 (Page 3 - Custom Orders):** `/custom-order` view. Catering request form (date selection, quantities, special instructions).
+* **Member 4 (Page 4 - Showcase Gallery - Multer):** `/showcase` view. Upload photos of special baked goods, gallery display.
+* **Member 5 (Page 5 - Customer Reviews):** `/reviews` view. Submit star ratings and feedback, display latest customer reviews.
+* **Member 6 (Page 6 - Contact & Hours):** `/contact` view. Inquiry submission form, store hours and location details.
 
 ---
+
 

@@ -8,27 +8,24 @@
     "push": "sh -c 'git add -A && git commit -m \"$1\" && git push' --"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "cookie-parser": "1.4.7",
-    "express": "5.2.1",
+    "dotenv": "^18.0.5",
+    "express": "^5.3.0",
     "express-handlebars": "9.0.1",
     "express-validator": "7.3.2",
     "jsonwebtoken": "9.0.3",
     "multer": "2.4.0",
     "mysql2": "3.24.4",
     "reflect-metadata": "0.2.2",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^6.0.1",
     "typeorm": "1.1.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "3.1.14"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://obillo5367@bitbucket.org/cstprojects/cweb-mid-a1.git"
-  },
-  "keywords": [],
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://bitbucket.org/cstprojects/cweb-mid-a1/issues"
-  },
-  "homepage": "https://bitbucket.org/cstprojects/cweb-mid-a1#readme"
+  "allowScripts": {
+    "sqlite3@6.0.1": true
+  }
 }
