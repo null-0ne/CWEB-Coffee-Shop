@@ -6,7 +6,7 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { AppDataSource } = require('./data-source');
-const { User, Item, Order, OrderItems } = require('./entity/User')
+const { User } = require('./entity/User')
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -211,7 +211,7 @@ app.get('/profile', authenticateTokenFromCookie, async (req, res) => {
   console.log(result.orders);
 
 
-  res.render('profile-page', {
+  res.render('profile', {
     title: 'Profile',
     user: req.user,
     email: result.email,
