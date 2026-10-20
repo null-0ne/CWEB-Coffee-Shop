@@ -19,7 +19,7 @@ module.exports.Submission = new EntitySchema({
             type: "text"
         },
         status: {
-            type: "varchar2(20)"
+            type: "boolean"
         }
         respondedOn: {
             type: "timestamp"

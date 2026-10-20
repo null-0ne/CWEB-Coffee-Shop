@@ -17,6 +17,6 @@ CREATE TABLE 'submissions' (
         REFERENCES users(id),
     'formType' VARCHAR2(20),
     'message' TEXT CONSTRAINTS submissions_msg_nn NOT NULL,
-    'status' VARCHAR2(20) CONSTRAINTS submissions_sts_nn NOT NULL,
+    'status' BOOLEAN CONSTRAINTS submissions_sts_nn NOT NULL,
     'respondedOn' TIMESTAMP
 );
