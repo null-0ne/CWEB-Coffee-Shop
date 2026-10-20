@@ -14,7 +14,7 @@ module.exports.Submission = new EntitySchema({
             nullable: false
         },
         formType: {
-            type: "varchar2(20)"
+            type: "varchar"
         },
         message: {
             type: "text"

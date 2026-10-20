@@ -1,27 +1,18 @@
 const express = require("express");
-const { randomUUID } = require("crypto");
 const exphbs = require("express-handlebars");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-// const sequelize = require("./database");
 const { AppDataSource } = require("./data-source")
-const { Review } = require("./entity/Review");
-// const reviewRepository = require("./review-repository");
-// const reviewRepository = AppDataSource.getRepository(Review);
+
+
 
 // Create the Express app and configure key app-level settings.
 const app = express();
 const PORT = 8000;
 
-function authorizeCurrentUser(req, res, next) {
-  // TODO: if req.user does not exist redirect to login
-  if (!req.user) {
-    res.redirect("http://localhost:8000/login");
-  }
-  next();
-}
+
 
 /******************************** CONFIGURE HANDLEBARS *******************************/
 // The custom helpers make it easier to format data in templates.
@@ -43,6 +34,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Connect DB
+AppDataSource.initialize().then(() => {
+    console.log("DB Connected ");
+}).catch(err => console.error(err));
+
+
+
 /*********** HOME PAGE ************
  * URL: http://localhost:8000/
  * Home page: displays learning concepts and sample student names.
@@ -63,6 +61,8 @@ app.get("/", (req, res) => {
   });
 });
 
+//#region Sucha Story here
+
 app.get("/reviews", async (req, res) => {
     if(!req.cookies.id)
     {
@@ -82,72 +82,14 @@ app.get("/reviews", async (req, res) => {
     console.error(err);
     res.send("Error fetching data");
   }
-
-
-  
-
-  
 });
 
-// app.post(
-//   "/reviews",
-//   [
-//     body("rating").notEmpty().withMessage("Give Rating"),
-//     body("review").notEmpty().withMessage("You must enter review"),
-//   ],
-//   async (req, res) => {
-//     if(!req.cookies.id)
-//     {
-//       return res.redirect("http://localhost:8000/");
-//     }
-//     const errors = validationResult(req);
-//     //console.log(errors);
-//     if (!errors.isEmpty()) {
-//       // Re-render form with errors and old input
-//       return res.render("reviews", {
-//         errors: errors.array(),
-//         oldInput: req.body,
-//       });
-//     }
+//#endregion
 
-//     try {
-//       const newReview = await reviewRepository.createReview({
-//         id: req.cookies.id,
-//         rating: req.body.rating,
-//         review: req.body.review,
-//         name: req.body.name
-//       });
-      
-//       const reviews =  await reviewRepository.findAllReviews();
-//       const plainReviews = reviews.map(r => r.get({ plain: true }));
-//       return res.render("reviews", { 
-//         reviews: plainReviews
-//       });
-//       //res.status(201).json(newReview);
-//     } catch (error) {
-//       res.status(500).json({ error: 'Failed to create Review: ' + error});
-//     }
-//   },
-// );
 
-// (async () => {
-//   try {
-//     await sequelize.authenticate();
-//     console.log('Database connection established');
-
-//     // Sync the model to the SQLite database.
-//     // force: true drops and recreates the table, which is useful for demo work.
-//     await sequelize.sync({ force: false });
-//     console.log('Database synced');
-
-//     app.listen(PORT, () => {
-//       console.log(`Exercise-LO2 running at http://localhost:${PORT}`);
-//     });
-//   } catch (error) {
-//     console.error('Application startup failed:', error);
-//     process.exit(1);
-//   }
-// })();
 
 /*********** Start the server *************/
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
 
