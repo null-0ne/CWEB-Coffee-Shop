@@ -1,0 +1,21 @@
+<h1>{{title}}</h1>
+
+<div class="card">
+    <h2>{{user.userName}}</h2>
+    <h2>{{email}}</h2>
+</div>
+
+<div>
+    <h2>Order History:</h2>
+    {{#each orders}}
+    <div class="card">
+        <h3>{{this.id}}.</h3> 
+        {{#each this.orderItems}}
+            <p>Item: {{this.item.itemName}} Qty: {{this.quantity}} </p>
+        {{/each}}
+        <p>Total: ${{this.total}}</p>
+        <p>Date: {{this.date}}</p>
+    </div>
+    {{/each}}
+</div>
+
