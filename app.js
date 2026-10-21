@@ -6,13 +6,15 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { AppDataSource } = require('./data-source');
-const { User } = require('./entity/User')
+const { User } = require('./entity/User');
+const { users } = require('./fixtures/users');
 
 // Create the Express app and configure key app-level settings.
 const app = express();
 const PORT = 8000;
 
 const SECRET_KEY = 'mysecret';
+
 
 
 /******************************** CONFIGURE HANDLEBARS *******************************/
@@ -38,7 +40,13 @@ app.use(cookieParser());
 // Connect DB
 AppDataSource.initialize().then(() => {
     console.log("DB Connected ");
-}).catch(err => console.error(err));
+}).then(async () =>{
+  const userRepository = AppDataSource.getRepository(User); // get user repository
+  await userRepository.clear(); // clear rows from userRepository so it can re-seed data
+  const userEntities = userRepository.create(users); // Create objects based on User entity
+  await userRepository.save(userEntities); // Save fake data to the database
+})
+.catch(err => console.error(err));
 
 
 
