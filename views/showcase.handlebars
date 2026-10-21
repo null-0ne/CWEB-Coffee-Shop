@@ -26,9 +26,12 @@
 {{/if}}
   <button type="submit">Upload</button>
 </form>
+
 {{else}}
 <p><a href = "/login">Login</a> to upload a photo</p>
 {{/if}}
+
+
 
 {{#if hasPhotos}}
 <h2>Gallery</h2>
@@ -48,7 +51,7 @@
       <span>
         <h3>{{this.title}}</h3>
         {{#if this.description}}
-          <p>Description: {{this.description}}</p>
+          <p>{{this.description}}</p>
         {{/if}}
         <p>Uploaded By: {{this.user.lastName}}, {{this.user.firstName}}</p>
         <p>Uploaded At: {{formatShortDate this.uploadDate}}</p>

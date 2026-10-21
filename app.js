@@ -9,6 +9,7 @@ const { AppDataSource } = require("./data-source")
 const { User } = require('./entity/User');
 const { users } = require('./fixtures/users');
 const { Showcase } = require("./entity/Showcase"); // showcase database
+const { showcasePhotos } = require("./fixtures/showcase");
 
 
 
@@ -55,9 +56,30 @@ AppDataSource.initialize().then(() => {
     console.log("DB Connected ");
 }).then(async () =>{
   const userRepository = AppDataSource.getRepository(User); // get user repository
-  await userRepository.clear(); // clear rows from userRepository so it can re-seed data
-  const userEntities = userRepository.create(users); // Create objects based on User entity
-  await userRepository.save(userEntities); // Save fake data to the database
+  if(await userRepository.count() ===0 ) {
+    const userEntities = userRepository.create(users); // Create objects based on User entity
+    await userRepository.save(userEntities); // Save fake data to the database
+  } 
+  //story 4 -- for my seed i just used the userName to find the person who uploaded it
+  //so i need the userRepo to  lookup the actual user so I can get their userId.
+  //IMPORTANT: becuase on my table, userId is connected to the users table as foreign key.
+  const showcaseRepository = AppDataSource.getRepository(Showcase); // get showcase repository
+  //Only add the seed data if the showcase table is empty, so we dont add the same fake datas again. 
+  //Note, if we run the SQL - it'll truncate the table and this will feed the fake data again
+  if(await showcaseRepository.count() === 0) {
+    const photosWithUserId = []; //The empty array which will store the photos with their real userId
+    for(const photo of showcasePhotos)
+    {
+      //this way i can find the real user by userName so userId can matches the foreign key
+      const uploader = await userRepository.findOneBy({userName: photo.userName});
+      if(uploader)
+      {
+        photosWithUserId.push({...photo, userId: uploader.id});//copying the photo data and adding the uploaders actual id
+      }
+    }
+    const showcaseEntities = showcaseRepository.create(photosWithUserId); //turning the photo datas into Showcase object
+    await showcaseRepository.save(showcaseEntities); // save fake data to database
+  }
 })
 .catch(err => console.error(err));
 
@@ -295,7 +317,7 @@ function authorizeCurrentUser(req, res, next) {
 const storage = multer.diskStorage({
   destination: "public/images/",
   filename: (req, file, callBack) =>
-    callBack(null, Date.now() + "-" + file.originalname.toLowerCase()),
+    callBack(null, file.originalname.toLowerCase()),
 });
 
 //File upload handler:
