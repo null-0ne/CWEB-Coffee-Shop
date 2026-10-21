@@ -71,12 +71,7 @@ The client will evaluate both the business/user experience and the technical imp
 
 ---
 
-## 6. Project 
-
-
----
-
-### **Suggestion 4: Bakery / Coffee Shop Order Hub**
+### ** Coffee Shop Order Hub**
 * **Member 1 (Page 1 - Auth & Profile):** `/login` & `/profile` view. Customer sign-up, JWT cookie authentication, order history view.
 * **Member 2 (Page 2 - Menu Items):** `/menu` view. Item catalog filterable via query strings (drinks/pastries), new item form.
 * **Member 3 (Page 3 - Custom Orders):** `/custom-order` view. Catering request form (date selection, quantities, special instructions).
@@ -85,3 +80,5 @@ The client will evaluate both the business/user experience and the technical imp
 * **Member 6 (Page 6 - Contact & Hours):** `/contact` view. Inquiry submission form, store hours and location details.
 
 ---
+
+
