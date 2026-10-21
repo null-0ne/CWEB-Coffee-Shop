@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source")
 
-const {reviews} = require('./fixtures/data-seed')
+const reviews = require('./fixtures/data-seed')
 const {Review} = require('./entity/Review');
 const reviewRepository = AppDataSource.getRepository(Review);
 
@@ -56,7 +56,7 @@ function authenticateTokenFromCookie(req, res, next) {
 AppDataSource.initialize().
 then(() => {
     console.log("DB Connected ");
-    return reviewRepository.save(reviews);
+    reviews();
 })
 .catch(err => console.error(err));
 
@@ -86,7 +86,7 @@ app.get("/", (req, res) => {
 
 app.get("/reviews",authenticateTokenFromCookie, async (req, res) => {
     
-    if(!req.user)
+    if(!req.user.id)
     {
       return res.redirect("http://localhost:8000/");
     }
@@ -131,13 +131,26 @@ app.post(
     }
 
     try {
-      const newReview = await reviewRepository.create({
-        userId: req.user.id,
-        rating: req.body.rating,
-        review: req.body.review,
-        visitDate: req.body.date
-    });
-      await reviewRepository.save(newReview);
+      const check = await reviewRepository.findOne({ where: { userId: req.user.id } });
+      if(check){
+        await reviewRepository.update(
+          { userId: req.user.id }, // WHERE clause
+          {
+            rating: req.body.rating,
+            review: req.body.review,
+            visitDate: req.body.date,
+          }
+      )}
+      else {
+        const newReview = await reviewRepository.create({
+          userId: req.user.id,
+          rating: req.body.rating,
+          review: req.body.review,
+          visitDate: req.body.date
+        });
+        await reviewRepository.save(newReview);
+      }
+
       
       const reviewsData =  await reviewRepository.find({
         order: {
