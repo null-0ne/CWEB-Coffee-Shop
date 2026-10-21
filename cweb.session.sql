@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS 'submissions';
 
 CREATE TABLE 'submissions' (
     'id' int CONSTRAINTS submissions_id_nn NOT NULL PRIMARY KEY,
-    'userID' int CONSTRAINTS submissions_user_fk FOREIGN KEY
+    'userId' int CONSTRAINTS submissions_user_fk FOREIGN KEY
         REFERENCES users(id),
     'formType' VARCHAR2(20),
     'message' TEXT CONSTRAINTS submissions_msg_nn NOT NULL,
