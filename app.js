@@ -6,15 +6,13 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source")
 
-const{reviews} = require('./fixtures/data-seed')
+const {reviews} = require('./fixtures/data-seed')
 const {Review} = require('./entity/Review');
 const reviewRepository = AppDataSource.getRepository(Review);
 
 // Create the Express app and configure key app-level settings.
 const app = express();
 const PORT = 8000;
-
-
 
 /******************************** CONFIGURE HANDLEBARS *******************************/
 // The custom helpers make it easier to format data in templates.
@@ -36,11 +34,28 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Middleware to authenticate JWT from cookie
+function authenticateTokenFromCookie(req, res, next) {
+  const token = req.cookies.token;
+  // If the token doesn't exist ( user is not logged in )
+  // do nothing and move on from middleware
+  if (!token){
+    //res.status(401).json({ error: 'Missing token' });
+    return next();
+  } //return res.status(401).json({ error: 'Missing token' });
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = user;
+    // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
+    next();
+  });
+}
+
 // Connect DB
 AppDataSource.initialize().
 then(() => {
     console.log("DB Connected ");
-    console.log(reviews);
     return reviewRepository.save(reviews);
 })
 .catch(err => console.error(err));
@@ -69,8 +84,9 @@ app.get("/", (req, res) => {
 
 //#region Sucha Story here
 
-app.get("/reviews", async (req, res) => {
-    if(!req.cookies.id)
+app.get("/reviews",authenticateTokenFromCookie, async (req, res) => {
+    
+    if(!req.user)
     {
       return res.redirect("http://localhost:8000/");
     }
@@ -94,36 +110,33 @@ app.get("/reviews", async (req, res) => {
 });
 
 app.post(
-  "/reviews",
+  "/reviews",authenticateTokenFromCookie,
   [
     body("rating").notEmpty().withMessage("Give Rating"),
     body("review").notEmpty().withMessage("You must enter review"),
     body("date").notEmpty().withMessage("You must enter the Visited Date")
   ],
   async (req, res) => {
-    if(!req.cookies.id)
+    if(!req.user)
     {
       return res.redirect("http://localhost:8000/");
     }
     const errors = validationResult(req);
-    //console.log(errors);
     if (!errors.isEmpty()) {
       // Re-render form with errors and old input
       return res.render("reviews", {
         errors: errors.array(),
-        oldInput: req.body,
+        oldInput: req.body
       });
     }
 
     try {
-
-      
       const newReview = await reviewRepository.create({
-        userId: req.cookies.id,
+        userId: req.user.id,
         rating: req.body.rating,
         review: req.body.review,
         visitDate: req.body.date
-      });
+    });
       await reviewRepository.save(newReview);
       
       const reviewsData =  await reviewRepository.find({
@@ -131,10 +144,10 @@ app.post(
           reviewDate: "DESC"
         }
       });
+
       return res.render("reviews", { 
         reviews: reviewsData
       });
-      //res.status(201).json(newReview);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create Review: ' + error});
     }
