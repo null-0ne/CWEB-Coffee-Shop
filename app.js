@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source")
 const { User } = require('./entity/User');
-const { users } = require('./fixtures/users');
+const { users } = require('./fixtures/seed-db');
 const { Showcase } = require("./entity/Showcase"); // showcase database
 const { showcasePhotos } = require("./fixtures/seed-db");
 
