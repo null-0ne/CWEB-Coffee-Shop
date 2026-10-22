@@ -5,14 +5,20 @@
     <label>Username:</label>
     <input type="text" name="userName" value="{{oldInput.userName}}" />
 
+    <label>Email:</label>
+    <input type="email" name="email" value="{{oldInput.email}}" />
+
+    <label>Birth Date:</label>
+    <input type="date" name="birthDate" value="{{oldInput.birthDate}}" />
+
+    <label>Phone Number:</label>
+    <input type="tel" name="phoneNumber" value="{{oldInput.phoneNumber}}" />
+
     <label>Password:</label>
     <input type="password" name="password" value="{{oldInput.password}}" />
 
     <label>Confirm Password:</label>
     <input type="password" name="confPassword" value="{{oldInput.confPassword}}" />
-    
-    <label>Email:</label>
-    <input type="email" name="email" value="{{oldInput.email}}" />
 
     {{#if errors.length}}
       <div class="error">
