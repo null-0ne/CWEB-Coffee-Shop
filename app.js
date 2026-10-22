@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source");
 const { User } = require("./entity/User");
 const { users } = require("./fixtures/users");
-const reviews = require("./fixtures/data-seed");
+const {reviews} = require("./fixtures/reviews");
 const { Review } = require("./entity/Review");
 const reviewRepository = AppDataSource.getRepository(Review);
 
@@ -58,13 +58,17 @@ function authenticateTokenFromCookie(req, res, next) {
 AppDataSource.initialize()
   .then(() => {
     console.log("DB Connected ");
-    reviews();
+    //reviews();
   })
   .then(async () => {
     const userRepository = AppDataSource.getRepository(User); // get user repository
     await userRepository.clear(); // clear rows from userRepository so it can re-seed data
     const userEntities = userRepository.create(users); // Create objects based on User entity
     await userRepository.save(userEntities); // Save fake data to the database
+
+    await reviewRepository.clear(); //clear rows from userRepostory
+    const reviewEntities = await reviewRepository.create(reviews); // Create objects based on User entity
+    await reviewRepository.save(reviewEntities); //save the fake data to the database
   })
   .catch((err) => console.error(err));
 

@@ -1,9 +1,4 @@
- const { AppDataSource } = require('../data-source');
- const { Review } = require('../entity/Review');
-
-
-module.exports = async function reviews() {
-    const users = [
+ module.exports.reviews =  [
         {
             userId: 101,
             rating: 5,
@@ -80,23 +75,8 @@ module.exports = async function reviews() {
             visitDate: '2026-04-25'
         }
     
-]
-    const reviewRepository = AppDataSource.getRepository(Review);
-    
-    for (const user of users) {
-        const existingUser = await reviewRepository.findOne({
-            where: { userId: user.userId },
-        });
-        if(!existingUser)
-        {
-            const newUser = reviewRepository.create(user);
-            await reviewRepository.save(newUser);
-        }
-        console.log(
-        `${existingUser ? 'Created' : 'Skipped'} user: ${user.userId}`
-        );
-    }
-}
+];
+
 
 
 
