@@ -9,7 +9,8 @@ const { AppDataSource } = require("./data-source")
 const { User } = require('./entity/User');
 const { users } = require('./fixtures/users');
 const { Showcase } = require("./entity/Showcase"); // showcase database
-const { showcasePhotos } = require("./fixtures/showcase");
+const { showcasePhotos } = require("./fixtures/seed-db");
+
 
 
 
