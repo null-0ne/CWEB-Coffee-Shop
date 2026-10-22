@@ -10,7 +10,23 @@
   <nav>
     <a href="/">Home</a>
     <a href="/reviews">Reviews</a>
-    <span class="rt"> Welcome, USER WHO IS LOGGED IN </span>
+    {{#if user}}
+      <span class="rt"> 
+        <form action="/logout" method="POST" >
+        <button type="submit">Log Out</button>
+        </form>
+        </span> 
+      <span class="rt">
+        <form action="/profile" >
+        <button type="submit">Profile</button>
+        </form>
+      </span>
+        
+      <span class="rt"> Welcome, {{user.userName}} </span> 
+    {{else}}
+      <span class="rt"> <a href="/login">Login</a> </span> 
+    {{/if}}
+    {{!-- USER WHO IS LOGGED IN --}}
   </nav>
 
   <div class="container">
