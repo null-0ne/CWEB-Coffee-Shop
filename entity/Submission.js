@@ -11,20 +11,34 @@ module.exports.Submission = new EntitySchema({
     },
     userId: {
       type: "int",
-      nullable: false,
+      nullable: true,
     },
-    formType: {
-      type: "varchar2(20)",
+    name: {
+      type: "varchar",
+      length: 255,
+    },
+    email: {
+      type: "varchar",
+      length: 255,
+    },
+    subject: {
+      type: "varchar",
+      length: 255,
     },
     message: {
       type: "text",
     },
     status: {
       type: "boolean",
+      default: false,
+    },
+    createdAt: {
+      type: "timestamp",
+      createDate: true,
     },
     respondedOn: {
       type: "timestamp",
-      createDate: true,
+      nullable: true,
     },
   },
 });
