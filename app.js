@@ -61,6 +61,8 @@ AppDataSource.initialize().then(() => {
     const userEntities = userRepository.create(users); // Create objects based on User entity
     await userRepository.save(userEntities); // Save fake data to the database
   } 
+}).then(async () => {
+  const userRepository = AppDataSource.getRepository(User); // get user repository
   //story 4 -- for my seed i just used the userName to find the person who uploaded it
   //so i need the userRepo to  lookup the actual user so I can get their userId.
   //IMPORTANT: becuase on my table, userId is connected to the users table as foreign key.
