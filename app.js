@@ -1,10 +1,10 @@
 const express = require("express");
-const { randomUUID } = require("crypto");
 const exphbs = require("express-handlebars");
 const { body, validationResult } = require("express-validator");
-const multer = require("multer");
-const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const { AppDataSource } = require("./data-source");
+const { Submission } = require("./entity/Submission");
+const { StoreInformation } = require("./entity/StoreInformation");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -31,19 +31,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Datasource
-AppDataSource.initialize().then(() => {
-  console.log("Database connected.")
-}).catch(err => console.log(err));
-
-app.get('/', async (req, res) => {
-  try {
-    const submissionRepo = AppDataSource.getRepository(Submission);
-    const submissions = await submissionRepo.find();
-  } catch (err) {
-    console.error(err);
-    res.send("Error fetching data");
-  }
-});
+AppDataSource.initialize()
+  .then(() => {
+    console.log("Database connected.");
+  })
+  .catch((err) => console.log(err));
 
 /*********** HOME PAGE ************
  * URL: http://localhost:8000/
@@ -64,15 +56,124 @@ app.get("/", (req, res) => {
   });
 });
 
+// Contact page: display the form and store information
 app.get("/contact", (req, res) => {
-  res.render("contact", {
-    title: "Contact Us",
-  });
+  try {
+    const storeInformationRepo = AppDataSource.getRepository(StoreInformation);
+
+    const storeInformation = await storeInformationRepo.find({
+      order: {
+        displayOrder: "ASC", // Displaying information in ascending order
+      },
+    });
+
+    // Group each db record so each section is displayed
+    const contactDetails = storeInformation.filter(
+      (item) => item.category === "contact",
+    );
+    const locationDetails = storeInformation.filter(
+      (item) => item.category === "location",
+    );
+    const hours = storeInformation.filter((item) => item.category === "hours");
+
+    return res.render("contact", {
+      title: "Contact Us",
+      input: {},
+      contactDetails,
+      locationDetails,
+      hours,
+    });
+  } catch (err) {
+    console.error("Error fetching store information:", err);
+
+    // Database/server error
+    return res.status(500).render("contact", {
+      title: "Contact Us",
+      input: {},
+      error: "We couldn't load the store information right now.",
+      contactDetails: [],
+      locationDetails: [],
+      hours: [],
+    });
+  }
 });
 
-app.post("/contact", (req, res) => {
-  console.log(req.body.message, req.body.email);
-});
+// Contact form: validate and save the submission.
+app.post(
+  "/contact",
+  [
+    body("name")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter your name.")
+      .isLength({ max: 255 })
+      .withMessage("Name must be 255 characters or fewer."),
+
+    body("email")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter your email.")
+      .bail()
+      .isEmail()
+      .withMessage("Please enter a valid email address.")
+      .isLength({ max: 255 })
+      .withMessage("Email must be 255 characters or fewer."),
+
+    body("subject")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter a subject.")
+      .isLength({ max: 255 })
+      .withMessage("Subject must be 255 characters or fewer."),
+
+    body("message")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter a message.")
+      .isLength({ min: 10, max: 5000 })
+      .withMessage("Message must be between 10 and 5000 characters."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      // Invalid form input error
+      return res.status(400).render("contact", {
+        title: "Contact Us",
+        errors: errors.array(),
+        input: req.body,
+      });
+    }
+
+    try {
+      const submissionRepo = AppDataSource.getRepository(Submission);
+
+      const submission = submissionRepo.create({
+        name: req.body.name.trim(),
+        email: req.body.email.trim(),
+        subject: req.body.subject.trim(),
+        message: req.body.message.trim(),
+      });
+
+      await submissionRepo.save(submission);
+
+      return res.render("contact", {
+        title: "Contact Us",
+        input: {},
+        success: "Thank you! Your inquiry has been submitted.",
+      });
+    } catch (err) {
+      console.error("Error saving contact inquiry:", err);
+
+      // Server/database error
+      return res.status(500).render("contact", {
+        title: "Contact Us",
+        input: req.body,
+        error: "We couldn't submit your inquiry right now. Please try again.",
+      });
+    }
+  },
+);
 
 /*********** Start the server *************/
 app.listen(PORT, () => {
