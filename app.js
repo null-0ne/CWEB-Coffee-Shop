@@ -57,7 +57,7 @@ app.get("/", (req, res) => {
 });
 
 // Contact page: display the form and store information
-app.get("/contact", (req, res) => {
+app.get("/contact", async (req, res) => {
   try {
     const storeInformationRepo = AppDataSource.getRepository(StoreInformation);
 
