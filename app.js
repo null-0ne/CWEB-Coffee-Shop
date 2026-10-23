@@ -332,7 +332,7 @@ app.get("/profile", authenticateTokenFromCookie, async (req, res) => {
 
 app.get("/reviews", authenticateTokenFromCookie, async (req, res) => {
   if (!req.user) {
-    return res.redirect("http://localhost:8000/");
+    return res.redirect("http://localhost:8000/login");
   }
   try {
     const reviewsData = await reviewRepository.find({
