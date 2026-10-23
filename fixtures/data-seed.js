@@ -1,5 +1,3 @@
- const { AppDataSource } = require('../data-source');
- const { Review } = require('../entity/Review');
 
  //Rylan
 module.exports.users = [
@@ -8,183 +6,189 @@ module.exports.users = [
     "email": "john@test.ca",
     "password": "Strong!Password1",
     "firstName": "John",
-    "lastName": "Doe"
+    "lastName": "Doe",
+    "birthDate": "2001-04-22",
+    "phoneNumber": "306-555-9321"
   },
   {
     "userName": "Janegirl",
     "email": "jane@test.ca",
     "password": "Strong!Password1",
     "firstName": "Jane",
-    "lastName": "Doe"
+    "lastName": "Doe",
+    "birthDate": "2001-08-19",
+    "phoneNumber": "306-555-3334"
   },
   {
     "userName": "Milly",
     "email": "mildred@test.ca",
     "password": "Strong!Password1",
     "firstName": "Mildred",
-    "lastName": "Tanaka"
+    "lastName": "Tanaka",
+    "birthDate": "2008-12-5",
+    "phoneNumber": "306-315-3564"
   },
   {
     "userName": "Tommyboy",
     "email": "thomas@test.ca",
     "password": "Strong!Password1",
     "firstName": "Thomas",
-    "lastName": "Walsh"
+    "lastName": "Walsh",
+    "birthDate": "1993-10-10",
+    "phoneNumber": "306-725-3889"
   },
   {
     "userName": "Jo",
     "email": "johanna@test.ca",
     "password": "Strong!Password1",
     "firstName": "Johanna",
-    "lastName": "Weidner"
+    "lastName": "Weidner",
+    "birthDate": "1998-02-11",
+    "phoneNumber": "306-717-4449"
   },
   {
     "userName": "Jelly",
     "email": "jelena@test.ca",
     "password": "Strong!Password1",
     "firstName": "Jelena",
-    "lastName": "Stojanovic"
+    "lastName": "Stojanovic",
+    "birthDate": "2019-02-27",
+    "phoneNumber": "306-541-3676"
   },
   {
     "userName": "Carls",
     "email": "carlotta@test.ca",
     "password": "Strong!Password1",
     "firstName": "Carlotta",
-    "lastName": "De Luca"
+    "lastName": "De Luca",
+    "birthDate": "1977-08-15",
+    "phoneNumber": "306-725-3889"
   },
   {
     "userName": "Bronny",
     "email": "bronwen@test.ca",
     "password": "Strong!Password1",
     "firstName": "Bronwen",
-    "lastName": "Pugh"
+    "lastName": "Pugh",
+    "birthDate": "1969-04-19",
+    "phoneNumber": "306-888-4321"
   },
   {
     "userName": "JamJam",
     "email": "jamal@test.ca",
     "password": "Strong!Password1",
     "firstName": "Jamal",
-    "lastName": "Okeke"
+    "lastName": "Okeke",
+    "birthDate": "2000-01-01",
+    "phoneNumber": "306-725-3889"
   },
   {
     "userName": "Trav",
     "email": "travis@test.ca",
     "password": "Strong!Password1",
     "firstName": "Travis",
-    "lastName": "Gentry"
+    "lastName": "Gentry",
+    "birthDate": "2002-10-10",
+    "phoneNumber": "306-725-3009"
   },
   {
     "userName": "JakeTheSnake",
     "email": "jake@test.ca",
     "password": "Strong!Password1",
     "firstName": "Jake",
-    "lastName": "Farnsworth"
+    "lastName": "Farnsworth",
+    "birthDate": "1998-04-22",
+    "phoneNumber": "306-711-0476"
   },
   {
     "userName": "Walt",
     "email": "walter@test.ca",
     "password": "Strong!Password1",
     "firstName": "Walter",
-    "lastName": "Grimshaw"
+    "lastName": "Grimshaw",
+    "birthDate": "1944-12-25",
+    "phoneNumber": "306-725-3889"
   }
 ]
-
 //Sucha
-module.exports = async function reviews() {
-    const users = [
+module.exports.reviews = [
         {
-            userId: 101,
+            userId: 1,
             rating: 5,
             review: 'Excellent experience',
             visitDate: '2026-01-18'
         },
         {
-            userId: 102,
+            userId: 2,
             rating: 4,
             review: 'friendly service.',
             visitDate: '2026-01-22'
         },
         {
 
-            userId: 103,
+            userId: 3,
             rating: 3,
             review: 'Average experience.',
             visitDate: '2026-02-02'
         },
         {
 
-            userId: 104,
+            userId: 4,
             rating: 5,
             review: 'Outstanding quality and great atmosphere.',
             visitDate: '2026-02-10'
         },
         {
 
-            userId: 105,
+            userId: 5,
             rating: 2,
             review: 'Service was slower than expected.',
             visitDate: '2026-02-18'
         },
         {
 
-            userId: 106,
+            userId: 6,
             rating: 4,
             review: 'Good value for money.',
             visitDate: '2026-03-01'
         },
         {
 
-            userId: 107,
+            userId: 7,
             rating: 5,
             review: 'One of the best experiences I have had.',
             visitDate: '2026-03-12'
         },
         {
 
-            userId: 108,
+            userId: 8,
             rating: 3,
             review: 'Decent experience but not exceptional.',
             visitDate: '2026-03-20'
         },
         {
 
-            userId: 109,
+            userId: 9,
             rating: 4,
             review: 'Clean environment and helpful staff.',
             visitDate: '2026-04-05'
         },
         {
 
-            userId: 110,
+            userId: 10,
             rating: 1,
             review: 'Did not meet expectations.',
             visitDate: '2026-04-11'
         },
         {
 
-            userId: 111,
+            userId: 11,
             rating: 5,
             review: 'Fantastic experience, would visit again.',
             visitDate: '2026-04-25'
         }
     
-]
-    const reviewRepository = AppDataSource.getRepository(Review);
-    
-    for (const user of users) {
-        const existingUser = await reviewRepository.findOne({
-            where: { userId: user.userId },
-        });
-        if(!existingUser)
-        {
-            const newUser = reviewRepository.create(user);
-            await reviewRepository.save(newUser);
-        }
-        console.log(
-        `${existingUser ? 'Created' : 'Skipped'} user: ${user.userId}`
-        );
-    }
-}
+]  
 
 //Kevin
 module.exports.showcasePhotos = [

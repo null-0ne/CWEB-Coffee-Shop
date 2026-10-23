@@ -3,7 +3,8 @@ const { EntitySchema } = require('typeorm');
 module.exports.User = new EntitySchema({
     name: 'User',
     tableName: 'users',
-    columns: {
+    columns: 
+    {
         id:{
             primary: true,
             type: 'int',
@@ -28,7 +29,11 @@ module.exports.User = new EntitySchema({
             length: 30,
             nullable: false
         },
-        lastName: {
+        birthDate:{
+            type: 'date',
+            nullable: false,
+        },
+        phoneNumber:{
             type: 'varchar',
             length: 50,
             nullable: false

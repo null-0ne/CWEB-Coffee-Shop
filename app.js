@@ -6,15 +6,11 @@ const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { AppDataSource } = require("./data-source")
+const { users, showcasePhotos, reviews } = require('./fixtures/data-seed'); // please add your fixture data seed here
 const { User } = require('./entity/User');
-const { users } = require('./fixtures/data-seed');
 const { Showcase } = require("./entity/Showcase"); // showcase database
-const { showcasePhotos } = require("./fixtures/data-seed");
-const reviews = require("./fixtures/data-seed");
 const { Review } = require("./entity/Review");
 const reviewRepository = AppDataSource.getRepository(Review);
-
-
 
 
 // Create the Express app and configure key app-level settings.
@@ -73,7 +69,6 @@ function authenticateTokenFromCookie(req, res, next) {
 AppDataSource.initialize()
   .then(() => {
     console.log("DB Connected ");
-    reviews();
   })
   .then(async () => {
     const userRepository = AppDataSource.getRepository(User); // get user repository
@@ -103,6 +98,28 @@ AppDataSource.initialize()
     const showcaseEntities = showcaseRepository.create(photosWithUserId); //turning the photo datas into Showcase object
     await showcaseRepository.save(showcaseEntities); // save fake data to database
   }
+}).then(async () => {
+  const reviewRepository = AppDataSource.getRepository(Review);
+  const userRepositroy = AppDataSource.getRepository(users);
+  if(await userRepositroy.count === 0)
+  {
+    for (const user of users) {
+        const existingUser = await reviewRepository.findOne({
+            where: { userId: user.userId },
+        });
+        if(!existingUser)
+        {
+            const newUser = reviewRepository.create(user);
+            await reviewRepository.save(newUser);
+        }
+        console.log(
+        `${existingUser ? 'Created' : 'Skipped'} user: ${user.userId}`
+        );
+        const reviewEntities = reviewRepository.create(reviews);
+        await reviewRepository.save(reviewEntities);
+    }
+  }
+    
 })
   .catch((err) => console.error(err));
 
@@ -415,10 +432,14 @@ const storage = multer.diskStorage({
 });
 
 //File upload handler:
+//only takes an image/ file
+//if not an image file, it'll reject the file and will show an error
 const showcaseUpload = multer({
   storage: storage,
+  //limited of 2,097,152 or 2MB 
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, callBack) => {
+    //file mime type -> image only
     if (file.mimetype.startsWith("image/")) {
       callBack(null, true);
     } else {
