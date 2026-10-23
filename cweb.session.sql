@@ -10,8 +10,8 @@ CREATE TABLE `users` (
   `userName` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL UNIQUE,
   `password` varchar(255) NOT NULL,
-  `firstName` varchar(30) NOT NULL,
-  `lastName` varchar(50) NOT NULL
+  `birthDate` DATE NULL,
+  `phoneNumber` varchar(50) NOT NULL
 );
 
 -- INSERT INTO users (

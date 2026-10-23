@@ -24,14 +24,9 @@ module.exports.User = new EntitySchema({
             length: 255,
             nullable: false
         },
-        firstName: {
-            type: 'varchar',
-            length: 30,
-            nullable: false
-        },
         birthDate:{
             type: 'date',
-            nullable: false,
+            nullable: true,
         },
         phoneNumber:{
             type: 'varchar',
