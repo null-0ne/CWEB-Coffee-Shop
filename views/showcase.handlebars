@@ -1,0 +1,65 @@
+<h1>{{title}}</h1>
+
+{{!--The idea is that only the logged-users can upload with title and description for their photo--}}
+{{#if user}}
+<h1>Upload Photo</h1>
+{{!--same with the example must use enctype="multipart/formdata" required for uploading photo using multer--}}
+<form action="/showcase" method="POST" enctype="multipart/form-data">
+  <label>Title</label>
+  <input type ="text" name="title" value="{{oldInput.title}}" required />
+
+  <label>Description (optional) </label>
+  <textarea name = "description">{{oldInput.description}}</textarea>
+
+  <label>Select image</label>
+  <input type="file" name="photo" required />
+
+{{!--Errors from the validator plus the missing or invalid file checks--}}
+{{#if errors.length}}
+  <div class="error">
+    <ul>
+      {{#each errors}}
+        <li>{{this.msg}}</li>
+      {{/each}}
+    </ul>
+  </div>
+{{/if}}
+  <button type="submit">Upload</button>
+</form>
+
+{{else}}
+<p><a href = "/login">Login</a> to upload a photo</p>
+{{/if}}
+
+
+
+{{#if hasPhotos}}
+<h2>Gallery</h2>
+
+{{!--t0d0: /get with the search + sort form --}}
+<form action ="/showcase" method="GET">
+  <input type="search" name="search" placeholder="Search by title or description" value="{{oldInput.search}}" />
+  <select name="sort">
+    <option value ="title" {{#if (eq oldInput.sort "title")}}selected {{/if}}>Sort By Title</option>
+    <option value ="date" {{#if (eq oldInput.sort "date")}}selected {{/if}}>Sort By Newest</option>
+  </select>
+  <button type ="submit">Accept</button>
+</form>
+
+  {{#each photos}}
+    <div class="showcase-card">
+      <span>
+        <h3>{{this.title}}</h3>
+        {{#if this.description}}
+          <p>{{this.description}}</p>
+        {{/if}}
+        <p>Uploaded By: {{this.user.userName}}</p>
+        <p>Uploaded At: {{formatShortDate this.uploadDate}}</p>
+        <p>File Name: {{this.fileName}}</p>
+      </span>
+      <span>
+        <img src ="/images/{{this.fileName}}" alt ="{{this.title}}"/>
+      </span>
+    </div>
+  {{/each}}
+{{/if}}

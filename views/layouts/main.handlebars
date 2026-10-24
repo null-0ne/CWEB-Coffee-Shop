@@ -8,8 +8,28 @@
   <body>
     <nav>
       <a href="/">Home</a>
+      <a href="/showcase">Showcase Gallery</a>
+      <a href="/reviews">Reviews</a>
       <a href="/contact">Contact Us</a>
-      <span class="rt"> Welcome, USER WHO IS LOGGED IN </span>
+
+      {{#if user}}
+        <span class="rt">
+          <form action="/logout" method="POST">
+            <button type="submit">Log Out</button>
+          </form>
+        </span>
+
+        <span class="rt">
+          <form action="/profile" method="GET">
+            <button type="submit">Profile</button>
+          </form>
+        </span>
+
+        <span class="rt">Welcome, {{user.userName}}</span>
+      {{else}}
+        <span class="rt"><a href="/login">Login</a></span>
+      {{/if}}
+      {{! USER WHO IS LOGGED IN }}
     </nav>
 
     <div class="container">

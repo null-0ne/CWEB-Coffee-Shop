@@ -1,5 +1,4 @@
 const { EntitySchema } = require("typeorm");
-const { GridFSBucketReadStream } = require("typeorm/driver/mongodb/typings.js");
 
 module.exports.User = new EntitySchema({
   name: "User",
@@ -30,6 +29,7 @@ module.exports.User = new EntitySchema({
     },
     phoneNumber: {
       type: "varchar",
+      length: 50,
       nullable: false,
     },
   },
