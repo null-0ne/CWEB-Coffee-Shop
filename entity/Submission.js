@@ -41,4 +41,12 @@ module.exports.Submission = new EntitySchema({
       nullable: true,
     },
   },
+  //https://typeorm.io/docs/guides/usage-with-javascript/
+  relations: {
+    user: {
+      target: "User",
+      type: "many-to-one",
+      joinColumn: { name: "userId" },
+    },
+  },
 });

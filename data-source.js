@@ -5,6 +5,7 @@ const { User } = require("./entity/User");
 const { Showcase } = require("./entity/Showcase");
 const { Submission } = require("./entity/Submission");
 const { Review } = require("./entity/Review");
+const { StoreInformation } = require("./entity/StoreInformation");
 
 module.exports.AppDataSource = new DataSource({
   type: "mysql",
