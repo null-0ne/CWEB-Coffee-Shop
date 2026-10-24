@@ -1,5 +1,0 @@
-Fix the date output into a normal way
-
-Find a way to number the orders properly ( currently I'm going by the id but that doesn't work because id's increment not based on order)
-
-Add filtering and searching for specific orders

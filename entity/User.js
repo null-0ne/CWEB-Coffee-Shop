@@ -4,7 +4,8 @@ const { GridFSBucketReadStream } = require('typeorm/driver/mongodb/typings.js');
 module.exports.User = new EntitySchema({
     name: 'User',
     tableName: 'users',
-    columns: {
+    columns: 
+    {
         id:{
             primary: true,
             type: 'int',
@@ -26,8 +27,7 @@ module.exports.User = new EntitySchema({
         },
         birthDate:{
             type: 'date',
-            nullable: false,
-            default: 'CURRENT_TIMESTAMP'
+            nullable: true,
         },
         phoneNumber:{
             type: 'varchar',

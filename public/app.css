@@ -98,3 +98,22 @@ input[type="radio"] {
 .rating input[type="radio"]:checked ~ label {
   color: gold;
 }
+
+.showcase-card {
+  display: flex; 
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 12px 0;
+  gap: 12px;
+}
+
+.showcase-card img {
+  float: right;
+  width: 180px;
+  height:180px;
+  object-fit: cover;
+  border-radius: 6px;
+}
