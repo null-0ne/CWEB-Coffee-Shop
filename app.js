@@ -88,6 +88,7 @@ AppDataSource.initialize()
     if ((await userRepository.count()) === 0) {
       const userEntities = userRepository.create(users); // Create objects based on User entity
       await userRepository.save(userEntities); // Save fake data to the database
+      console.log("Users seeded")
     }
   })
   .then(async () => {
@@ -111,6 +112,7 @@ AppDataSource.initialize()
       }
       const showcaseEntities = showcaseRepository.create(photosWithUserId); //turning the photo datas into Showcase object
       await showcaseRepository.save(showcaseEntities); // save fake data to database
+      console.log("Showcase seeded")
     }
   })
   .then(async () => {
@@ -119,6 +121,7 @@ AppDataSource.initialize()
     if ((await reviewRepository.count()) === 0) {
       const reviewEntities = reviewRepository.create(reviews);
       await reviewRepository.save(reviewEntities);
+      console.log("Reviews seeded")
     }
   })
   .then(async () => {
