@@ -2,9 +2,19 @@ const express = require("express");
 const exphbs = require("express-handlebars");
 const { body, validationResult } = require("express-validator");
 const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { AppDataSource } = require("./data-source");
 const { Submission } = require("./entity/Submission");
 const { StoreInformation } = require("./entity/StoreInformation");
+const { User } = require("./entity/User");
+const { Showcase } = require("./entity/Showcase");
+const { Review } = require("./entity/Review");
+const {
+  users,
+  showcasePhotos,
+  reviews,
+  storeInformation,
+} = require("./fixtures/data-seed");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -30,12 +40,90 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Datasource
+const SECRET_KEY = "mysecret";
+
+function authenticateTokenFromCookie(req, res, next) {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return next();
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid token" });
+    }
+
+    req.user = user;
+    next();
+  });
+}
+
+function authorizeCurrentUser(req, res, next) {
+  if (!req.user) {
+    return res.redirect("/login");
+  }
+
+  next();
+}
+
+// Connect DB
 AppDataSource.initialize()
   .then(() => {
-    console.log("Database connected.");
+    console.log("DB Connected");
   })
-  .catch((err) => console.log(err));
+  .then(async () => {
+    const userRepository = AppDataSource.getRepository(User); // get user repository
+    if ((await userRepository.count()) === 0) {
+      const userEntities = userRepository.create(users); // Create objects based on User entity
+      await userRepository.save(userEntities); // Save fake data to the database
+    }
+  })
+  .then(async () => {
+    const userRepository = AppDataSource.getRepository(User); // get user repository
+    //story 4 -- for my seed i just used the userName to find the person who uploaded it
+    //so i need the userRepo to  lookup the actual user so I can get their userId.
+    //IMPORTANT: becuase on my table, userId is connected to the users table as foreign key.
+    const showcaseRepository = AppDataSource.getRepository(Showcase); // get showcase repository
+    //Only add the seed data if the showcase table is empty, so we dont add the same fake datas again.
+    //Note, if we run the SQL - it'll truncate the table and this will feed the fake data again
+    if ((await showcaseRepository.count()) === 0) {
+      const photosWithUserId = []; //The empty array which will store the photos with their real userId
+      for (const photo of showcasePhotos) {
+        //this way i can find the real user by userName so userId can matches the foreign key
+        const uploader = await userRepository.findOneBy({
+          userName: photo.userName,
+        });
+        if (uploader) {
+          photosWithUserId.push({ ...photo, userId: uploader.id }); //copying the photo data and adding the uploaders actual id
+        }
+      }
+      const showcaseEntities = showcaseRepository.create(photosWithUserId); //turning the photo datas into Showcase object
+      await showcaseRepository.save(showcaseEntities); // save fake data to database
+    }
+  })
+  .then(async () => {
+    const reviewRepository = AppDataSource.getRepository(Review);
+    // Seed reviews only when the table is empty.
+    if ((await reviewRepository.count()) === 0) {
+      const reviewEntities = reviewRepository.create(reviews);
+      await reviewRepository.save(reviewEntities);
+    }
+  })
+  .then(async () => {
+    const storeInformationRepository =
+      AppDataSource.getRepository(StoreInformation);
+
+    // Seed store information only when the table is empty.
+    if ((await storeInformationRepository.count()) === 0) {
+      const storeInformationEntities =
+        storeInformationRepository.create(storeInformation);
+
+      await storeInformationRepository.save(storeInformationEntities);
+      console.log("Store information seeded.");
+    }
+  })
+  .catch((err) => console.error(err));
 
 /*********** HOME PAGE ************
  * URL: http://localhost:8000/
@@ -57,7 +145,7 @@ app.get("/", (req, res) => {
 });
 
 // Contact page: display the form and store information
-app.get("/contact", async (req, res) => {
+app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
   try {
     const storeInformationRepo = AppDataSource.getRepository(StoreInformation);
 
@@ -78,6 +166,7 @@ app.get("/contact", async (req, res) => {
 
     return res.render("contact", {
       title: "Contact Us",
+      user: req.user,
       input: {},
       contactDetails,
       locationDetails,
@@ -101,6 +190,8 @@ app.get("/contact", async (req, res) => {
 // Contact form: validate and save the submission.
 app.post(
   "/contact",
+  authenticateTokenFromCookie,
+  authorizeCurrentUser,
   [
     body("name")
       .trim()
@@ -149,6 +240,7 @@ app.post(
       const submissionRepo = AppDataSource.getRepository(Submission);
 
       const submission = submissionRepo.create({
+        userId: req.user.id,
         name: req.body.name.trim(),
         email: req.body.email.trim(),
         subject: req.body.subject.trim(),
