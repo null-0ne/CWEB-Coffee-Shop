@@ -13,14 +13,10 @@
     <a href="/reviews">Reviews</a>
     {{#if user}}
       <span class="rt"> 
-        <form action="/logout" method="POST" >
-        <button type="submit">Log Out</button>
-        </form>
+        <a href="/logout">Log Out</a>
         </span> 
       <span class="rt">
-        <form action="/profile" >
-        <button type="submit">Profile</button>
-        </form>
+        <a href="/profile">&nbsp;&nbsp;Profile</a>
       </span>
         
       <span class="rt"> Welcome, {{user.userName}} </span> 
@@ -35,3 +31,4 @@
   </div>
 </body>
 </html>
+

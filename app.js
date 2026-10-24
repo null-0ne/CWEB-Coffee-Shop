@@ -173,9 +173,9 @@ app.get("/login", (req, res) => {
     isRegister: false,
   });
 });
-app.post("/logout", (req, res) => {
+app.get("/logout", (req, res) => {
   res.clearCookie("token");
-  res.redirect("/"); // Not sure how to redirect back to the page you were on, but that might not be proper functionality anyway
+  res.redirect("/");
 });
 
 app.post("/login", async (req, res) => {
@@ -263,6 +263,12 @@ app.post(
         return value === req.body.password;
       })
       .withMessage("Passwords must match"),
+      body("birthDate")
+      .isBefore()
+      .withMessage("Birth date must be before todays date: " + new Date().toISOString().split('T')[0]),
+      body("phoneNumber")
+      .isMobilePhone('en-CA')
+      .withMessage("Please enter a valid phone number")
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -275,14 +281,10 @@ app.post(
         oldInput: req.body,
       });
     }
-    const userInfo = { ...req.body, id: randomUUID() };
-    console.log("New User:", userInfo);
     const userRepository = AppDataSource.getRepository(User);
     const user = userRepository.create(req.body);
     const result = await userRepository.save(user);
-    //res.json(result);
-    //res.redirect('/login'); // should I automatically login, or redirect to login after registering?
-    // auto login after register is a better UX design in my opinion
+
     const token = jwt.sign(
       { id: result.id, userName: result.userName },
       SECRET_KEY,
@@ -301,29 +303,34 @@ app.post(
 app.get("/profile", authenticateTokenFromCookie, async (req, res) => {
   // Current User data
   const userRepository = AppDataSource.getRepository(User);
-  // Cascaded relations to be able to access the current users orders and items within those orders
-  const result = await userRepository.findOne({
-    where: { id: req.user.id },
-    relations: {
-      orders: {
-        orderItems: {
-          item: true,
-        },
-      },
-    },
-  });
-  if (!result) {
-    // This case should not occur because a valid token must be present to access the /profile route
-    return res.json({ success: false, message: "User does not exist" });
-  }
+  const currentUser = await userRepository.findOne({where: {id: req.user.id}})
 
-  console.log(result.orders);
+  //const orderRepository = AppDataSource.getRepository(Order);
+  // Cascaded relations to be able to access the current users orders and items within those orders
+  // const result = await userRepository.findOne({
+  //   where: { id: req.user.id },
+  //   relations: {
+  //     orders: {
+  //       orderItems: {
+  //         item: true,
+  //       },
+  //     },
+  //   },
+  // });
+  // if (!result) {
+  //   // This case should not occur because a valid token must be present to access the /profile route
+  //   return res.json({ success: false, message: "User does not exist" });
+  // }
+
+  //console.log(result.orders);
 
   res.render("profile", {
     title: "Profile",
     user: req.user,
-    email: result.email,
-    orders: result.orders,
+    email: currentUser.email,
+    phone: currentUser.phoneNumber,
+    birthDate: currentUser.birthDate
+    //orders: result.orders,
   });
 });
 

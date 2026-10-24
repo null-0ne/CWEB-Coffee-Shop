@@ -17,7 +17,15 @@ nav a {
   margin-right: 14px;
 }
 
+nav a:hover {
+  color:#2563eb;
+}
+
 nav .rt {
+  float: right;
+}
+
+.rt {
   float: right;
 }
 

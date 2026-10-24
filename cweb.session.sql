@@ -1,7 +1,9 @@
 USE cweb;
-
 DROP TABLE IF EXISTS `showcase`;
 DROP TABLE IF EXISTS `Showcase`;
+DROP TABLE IF EXISTS `orderItems`;
+DROP TABLE IF EXISTS `orders`;
+
 DROP TABLE IF EXISTS `users`;
 DROP TABLE IF EXISTS `user`;
 
