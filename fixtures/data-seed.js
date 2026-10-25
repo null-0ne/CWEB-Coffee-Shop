@@ -355,3 +355,69 @@ module.exports.showcasePhotos = [
     description: "Cold brew topped with pumpkin cream cold foam.",
   },
 ];
+
+//Roseanne
+
+//pls change to actual menu seed, just added some for my story testing
+module.exports.menuItems = [
+{
+  userId: 1,
+  title: "Pumpkin Cream Cold Brew",
+  category: "Cold Drinks",
+  price: 6.50
+},
+{
+  userId: 1,
+  title: "Iced Latte",
+  category: "Cold Drinks",
+  price: 5.75
+},
+{
+  userId: 1,
+  title: "Cortado",
+  category: "Hot Drinks",
+  price: 5.50
+},
+{
+  userId: 1,
+  title: "Americano",
+  category: "Hot Drinks",
+  price: 4.50
+},
+{
+  userId: 1,
+  title: "Apple Crumble Pie",
+  category: "Pies",
+  price: 26.50
+},
+{
+  userId: 1,
+  title: "Pumpkin Pie",
+  category: "Pies",
+  price: 30.00
+},
+{
+  userId: 1,
+  title: "Pecan Pie",
+  category: "Pies",
+  price: 32.50
+},
+{
+  userId: 1,
+  title: "Cheese Danish",
+  category: "Pastries",
+  price: 5.50
+},
+{
+  userId: 1,
+  title: "Ham and Swiss Croissant",
+  category: "Pastries",
+  price: 7.50
+},
+{
+  userId: 1,
+  title: "Cinammon Roll",
+  category: "Pastries",
+  price: 6.50
+},
+]

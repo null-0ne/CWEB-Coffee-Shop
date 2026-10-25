@@ -1,14 +1,5 @@
 <h1>{{title}}</h1>
 
-<div class="card">
-  <h2>CWEB 280 Midterm Project</h2>
-  <p>Demostration of Express, Handlebars, TypeORM, express-validator, Multer, and JWT with cookie-parser</p>
-</div>
-
-<div class="card">
-  <img src="/clouds.jpg" />
-
-//make sure to add id later
 <form>
 
   <label for="menu-select">Pick Item from Menu</label>
@@ -17,7 +8,7 @@
       <option value="">--Please choose an option--</option>
       {{#each menu_list}}
       //for the value, probably want id instead of name of item?
-      <option value="{{this.item}}">{{this.item}}</option>
+      <option value="{{this.title}}">{{this.title}}</option>
       {{/each}}
     </select>
   </p>

@@ -20,5 +20,17 @@
   },
   "devDependencies": {
     "nodemon": "3.1.14"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://atchivara7947@bitbucket.org/cstprojects/cweb-mid-a1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://bitbucket.org/cstprojects/cweb-mid-a1/issues"
+  },
+  "homepage": "https://bitbucket.org/cstprojects/cweb-mid-a1#readme"
 }

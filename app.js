@@ -11,11 +11,13 @@ const { StoreInformation } = require("./entity/StoreInformation");
 const { User } = require("./entity/User");
 const { Showcase } = require("./entity/Showcase");
 const { Review } = require("./entity/Review");
+const { Menu } = require("./entity/Menu");
 const {
   users,
   showcasePhotos,
   reviews,
   storeInformation,
+  menuItems, //pls change to actual menu list in seed
 } = require("./fixtures/data-seed");
 
 // Create the Express app and configure key app-level settings.
@@ -135,6 +137,15 @@ AppDataSource.initialize()
 
       await storeInformationRepository.save(storeInformationEntities);
       console.log("Store information seeded.");
+    }
+  })
+  .then(async () => {
+    const menuRepository = AppDataSource.getRepository(Menu);
+    //Seed menu only when table is empty
+    if ((await menuRepository.count()) === 0) {
+      const menuEntities = menuRepository.create(menuItems); 
+      await menuRepository.save(menuEntities);
+      console.log("Menu Items seeded.");
     }
   })
   .catch((err) => console.error(err));
@@ -688,26 +699,33 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 });
 
+//------------Story (i forgot what num, will edit lol) - Custom Orders - Roseanne Atchivara -------------
 /*********** CUSTOM ORDERS ************
- * URL: http://localhost:8000/custom_orders
+ * URL: http://localhost:8000/custom-orders
  * 
 ************************************/
 
-//Item-order object to post in database?
-//add items as you go along + whatever schema the group decides for database
-const itemOrder = {};
 
-app.get('/custom_orders', (req, res) => {
-  res.render('custom_orders', {
+
+app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
+
+  const sortedMenu = await AppDataSource.getRepository(Menu).find(
+    {
+      order: {
+        //sorts menu and groups them into categories first 
+        category: "ASC",
+        title: "ASC"
+      }
+    }
+  )
+
+
+
+  //Render page
+  res.render('custom-orders', {
     title: 'CUSTOM ORDERS',
-
-    //take menu from the database
-    //hard-coded for now? 
-    menu_list: [
-      { item: 'Artisan Baguette', price: 4.00 },
-      { item: 'Insert Pretentious Coffee Name here', price: 32.50},
-      { item: 'Muffin', price: 3.50 }
-    ]
+    user: req.user,
+    menu_list: sortedMenu
   })
 
 });
