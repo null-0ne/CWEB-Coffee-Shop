@@ -7,7 +7,7 @@ const { Submission } = require("./entity/Submission");
 const { Review } = require("./entity/Review");
 const { StoreInformation } = require("./entity/StoreInformation");
 const { Order } = require("./entity/Order");
-const { OrderItem } = require("./entity/OrderItem");
+const { OrderItem } = require("./entity/OrderItem.js");
 
 module.exports.AppDataSource = new DataSource({
   type: "mysql",
