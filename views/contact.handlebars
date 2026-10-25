@@ -1,0 +1,92 @@
+<h1>{{title}}</h1>
+
+{{#if success}}
+  <p class="success">{{success}}</p>
+{{/if}}
+
+{{#if error}}
+  <p class="error">{{error}}</p>
+{{/if}}
+
+{{#if user}}
+  <section>
+    <h2>Send Us a Message</h2>
+
+    <form action="/contact" method="post" novalidate>
+      <label for="name">Name</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        value="{{input.name}}"
+        maxlength="255"
+        required
+      />
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        value="{{input.email}}"
+        maxlength="255"
+        required
+      />
+      <label for="subject">Subject</label>
+      <input
+        type="text"
+        id="subject"
+        name="subject"
+        value="{{input.subject}}"
+        maxlength="255"
+        required
+      />
+      <label for="message">Let's hear from you!</label>
+      <textarea
+        id="message"
+        name="message"
+        rows="6"
+        minlength="10"
+        maxlength="5000"
+        required
+      >{{input.message}}</textarea>
+
+      {{#if errors}}
+        <ul class="error-list">
+          {{#each errors}}
+            <li>{{this.msg}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+      <button type="submit">Submit</button>
+    </form>
+  </section>
+{{else}}
+  <p>Please <a href="/login">log in</a> to send us a message.</p>
+{{/if}}
+
+<hr />
+
+<footer class="store-footer">
+  <h2>Visit Us!</h2>
+
+  <div class="store-details">
+    {{#each contactDetails}}
+      <p>{{label}}: {{value}}</p>
+    {{/each}}
+
+    {{#each locationDetails}}
+      <p>{{label}}: {{value}}</p>
+    {{/each}}
+  </div>
+
+  <h3>Hours</h3>
+
+  <div class="store-hours">
+    {{#each hours}}
+      <p>{{label}}: {{value}}</p>
+    {{else}}
+      <p>Store hours are currently unavailable.</p>
+    {{/each}}
+  </div>
+</footer>
