@@ -719,15 +719,37 @@ app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
     }
   )
 
+  //Create an array of all the available categories in the menu repository
+  let categories = [];
+  sortedMenu.forEach(item => {
+
+    //if the category of the item doesn't exist in the categories array yet, add to categories
+    if (!categories.includes(item.category))
+    {
+      categories.push(item.category);
+    }
+  });
+
+  let categorizedMenu = [];
+  //for each categories, create an object containing the category name and a filtered 
+  // list of items in that category
+  categories.forEach(categoryName => {
+    const items = sortedMenu.filter((item) => item.category === categoryName);
+    categorizedMenu.push(
+      { 
+        name: categoryName,
+        items: items
+      }
+    )
+  });
 
 
   //Render page
   res.render('custom-orders', {
     title: 'CUSTOM ORDERS',
     user: req.user,
-    menu_list: sortedMenu
+    menu_list: categorizedMenu
   })
-
 });
 
 /**

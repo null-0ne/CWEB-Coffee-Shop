@@ -4,20 +4,17 @@
   <form>
 
     <label for="menu-select">Pick Item from Menu</label>
-    <p>
-      <select name="menu" id="menu-select">
-        <option value="">--Please choose an option--</option>
-        {{#each menu_list}}
-        //for the value, probably want id instead of name of item?
-        <option value="{{this.title}}">{{this.title}}</option>
-        {{/each}}
-      </select>
-    </p>
 
-    //Add button should: choose blank option, 
+    {{#each menu_list}}
+    <div class="card">
+      <h3>{{this.name}}</h3>
+      {{#each this.items}}
+      <p>{{this.title}} - ${{this.price}}</p>
 
+      {{/each}}
+    </div>
+    {{/each}}
 
-    //button to submit form
     </form>
 
 {{else}}
