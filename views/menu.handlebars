@@ -1,25 +1,25 @@
 <div class="card">
     <h3>Menu</h3>
      <form action="/menu" method="GET">
-        <input type="search" name="search" placeholder="Search menu items" value="{{oldInput.search}}" />
-        <select name="sort">
-          <option value="type" {{#if (eq oldInput.sort "type")}}selected{{/if}}>Search By Type</option>
-           <option value="name" {{#if (eq oldInput.sort "name")}}selected{{/if}}>Search By Name</option>
+        <input type="search" name="search" placeholder="Search menu items" />
+        <select name="filter">
+          <option value="category" >Search By Category</option>
+           <option value="title" >Search By Name</option>
         </select>
         <button type="submit">Search</button>
   </form>  
   
     <ul>
         {{#each menuItems}}
-            <li>{{this.itemName}}</li>
+            <li>{{this.title}}:     ${{this.price}}</li>
         {{/each}}
     </ul>
 
 </div>
 
-Add a menu Item
+{{!-- Add a menu Item --}}
 <div class="card">
-  <h1>Add A Menu Item</h1>
+  <h3>Add A Menu Item</h3>
     {{#if error}}
     <p class="error">{{error}}</p>
   {{/if}}
@@ -31,8 +31,21 @@ Add a menu Item
   <form action="/menu" method="POST" >
     <label>Select item name</label>
     <input type="text" name="itemName" required />
-     <label>Select item type</label>
+     <label>Select item category</label>
     <input type="text" name="itemType" required />
+     <label>Select item price</label>
+    <input type="text" name="itemPrice" required />
     <button type="submit">Upload</button>
   </form>
 </div>
+
+{{#if newItem}}
+<div class="card">
+  <h3>New Item added</h3>
+  <ul>
+    <li>Name: {{newItem.title}}</li>
+      <li>Category: {{newItem.category}}</li>
+      <li>Price: {{newItem.price}}</li>
+  </ul>
+</div>
+{{/if}}
