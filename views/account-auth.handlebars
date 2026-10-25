@@ -1,0 +1,53 @@
+<h1>{{title}}</h1>
+
+{{#if isRegister}}
+<form action="/register" method="POST">
+    <label>Username:</label>
+    <input type="text" name="userName" value="{{oldInput.userName}}" />
+
+    <label>Password:</label>
+    <input type="password" name="password" value="{{oldInput.password}}" />
+
+    <label>Confirm Password:</label>
+    <input type="password" name="confPassword" value="{{oldInput.confPassword}}" />
+    
+    <label>Email:</label>
+    <input type="email" name="email" value="{{oldInput.email}}" />
+
+    {{#if errors.length}}
+      <div class="error">
+        <ul>
+          {{#each errors}}
+            <li>{{this.msg}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+
+    <button type="submit">Register</button>
+</form>
+<p>Already have an account? <a href="/login">Login</a></p>
+{{else}}
+<form action="/login" method="POST">
+    <label>Email</label>
+    <input type="email" name="email" value="{{oldInput.email}}" placeholder="admin@test.ca" required />
+
+    <label>Password</label>
+    <input type="password" name="password" value="{{oldInput.password}}" placeholder="12345Pwd" required />
+    {{#if errors.length}}
+      <div class="error">
+        <ul>
+          {{#each errors}}
+            <li>{{this.msg}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+
+    <button type="submit">Login</button>
+</form>
+<p>Need an account? <a href="/register">Register</a></p>
+{{/if}}
+
+
+</div>

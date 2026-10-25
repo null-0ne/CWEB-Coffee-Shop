@@ -30,24 +30,24 @@ Teams may propose their own web application idea or choose from the suggested pr
 Every submitted project must satisfy the following baseline architecture:
 
 1. **Application start point (`app.js`):**
-    - Express server initialization with standard middleware (`express.json()`, `express.urlencoded({ extended: true })`, `cookieParser()`).
-    - Centralized TypeORM `DataSource` connection to a MySQL database.
-    - Handlebars view engine setup with layout templates (`main.handlebars`) and partials.
+   - Express server initialization with standard middleware (`express.json()`, `express.urlencoded({ extended: true })`, `cookieParser()`).
+   - Centralized TypeORM `DataSource` connection to a MySQL database.
+   - Handlebars view engine setup with layout templates (`main.handlebars`) and partials.
 
 2. **Authentication & Authorization (JWT):**
-    - User registration and login flows issuing signed JWT tokens stored securely in **`HttpOnly` cookies**.
-    - Custom authentication middleware (e.g., `authenticateTokenFromCookie`) to protect restricted routes and attach `req.user` payload.
+   - User registration and login flows issuing signed JWT tokens stored securely in **`HttpOnly` cookies**.
+   - Custom authentication middleware (e.g., `authenticateTokenFromCookie`) to protect restricted routes and attach `req.user` payload.
 
 3. **Database Integration (TypeORM + MySQL):**
-    - Relational database tables mapped using TypeORM entities or entity schemas.
-    - All database operations abstracted using TypeORM repositories (`AppDataSource.getRepository(...)`).
+   - Relational database tables mapped using TypeORM entities or entity schemas.
+   - All database operations abstracted using TypeORM repositories (`AppDataSource.getRepository(...)`).
 
 4. **Input Validation (`express-validator`):**
-    - All incoming form inputs and API payloads validated at the route level using `express-validator`.
-    - When validation fails (`validationResult(req)`), controllers must re-render the Handlebars view with feedback messages and preserved input fields.
+   - All incoming form inputs and API payloads validated at the route level using `express-validator`.
+   - When validation fails (`validationResult(req)`), controllers must re-render the Handlebars view with feedback messages and preserved input fields.
 
 5. **File Handling & Multipart Data (Multer):**
-    - At least one section of the application must implement file uploads using **Multer** disk storage, enforcing file size limits and MIME-type restrictions.
+   - At least one section of the application must implement file uploads using **Multer** disk storage, enforcing file size limits and MIME-type restrictions.
 
 ---
 

@@ -9,27 +9,30 @@ module.exports.Menu = new EntitySchema({
             type: "int",
             generated: true,
         },
-        userId:{
+        userId: {
             type: "int",
-            nullable: false
+            nullable: false,
         },
         title: {
             type: "varchar",
             length: 255,
-             nullable: false
+            nullable: false,
         },
         category: {
             type: "varchar",
             length: 255,
-             nullable: false
+            nullable: false,
         },
-        createDate:{
+        createDate: {
             type: "timestamp",
-            createDate: true
+            createDate: true,
         },
+        // https://typeorm.io/docs/entity/entities: DECIMAL NEEDS A SCALE AND PRECISION VALUE
         price: {
             type: "decimal",
-            nullable: false
-        }
+            nullable: false,
+            precision: 8,
+            scale: 2,
+        },
     },
 });

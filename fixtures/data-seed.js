@@ -60,6 +60,18 @@ module.exports.menu = [
         userId: "7",
         price: 5.00,
     },
+      {
+        title: "Cortado",
+        category: "drink",
+        userId: "3",
+        price: 5.00,
+    },
+      {
+        title: "Iced Matcha Latte",
+        category: "drink",
+        userId: "4",
+        price: 4.75,
+    },
     
 ];
 

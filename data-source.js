@@ -6,6 +6,8 @@ const { Showcase } = require("./entity/Showcase");
 const { Submission } = require("./entity/Submission");
 const { Review } = require("./entity/Review");
 const { StoreInformation } = require("./entity/StoreInformation");
+const { Order } = require("./entity/Order");
+const { OrderItem } = require("./entity/OrderItem.js");
 
 module.exports.AppDataSource = new DataSource({
   type: "mysql",
@@ -16,5 +18,5 @@ module.exports.AppDataSource = new DataSource({
   database: "cweb", // make sure this DB exists
   synchronize: true, // auto-create tables
   logging: false,
-  entities: [User, Menu, Showcase, Submission, Review, StoreInformation], //if the entity is not lsited in the array, then the table will not be created
+  entities: [User, Menu, Showcase, Submission, Review, StoreInformation, Order, OrderItem], //if the entity is not lsited in the array, then the table will not be created
 });
