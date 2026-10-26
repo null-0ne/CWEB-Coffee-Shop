@@ -1,0 +1,83 @@
+
+{{#if error}}
+  <h1 class="error">{{title}}</h1>
+  <p class="error">{{error}}</p>
+  {{else}}
+  <h1>{{title}}:</h1>
+{{/if}}
+
+{{#unless error}}
+  {{#if user}}
+    <form method="POST" action="/custom-orders">
+
+      {{#each menu_list}}
+      <div class="card">
+        <h3>{{this.name}}</h3>
+        <table class="order-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Price</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each this.items}}
+            <tr>
+              <td>{{this.title}}</td>
+              <td>${{this.price}}</td>
+              <td>
+                <label>Quantity:
+                  <input name="quantities[id{{this.id}}]" type="number" value="0" min="0" max="999"/>
+                </label>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{/each}}
+
+      <div class="inline-card">
+        <div class="card half">
+          <label><h2>Catering Date</h2>
+          <p>Please allow 24 hours in advance to prepare your catering order.</p>
+            <input name="caterDate" type="datetime-local" min="{{caterMinDate}}" value="{{caterDate}}" />
+          </label>
+        </div>
+        <div class="card half">
+          <h2>Location</h2>
+          <p><strong>Note: We do <span class="error">Local Pickup Only!</span></strong></p>
+
+            {{#each storeInfo}}
+              <address>
+                {{value}}
+              </address>
+            {{/each}}
+        </div>
+      </div>
+
+
+      <div class="card">
+        <label><h2>Special Instructions</h2>
+          <textarea class="half" name="specialInstructions" 
+          rows="6" maxlength="255" 
+          placeholder="Notes: (Optional)">{{input.specialInstructions}}</textarea>
+        </label>
+      </div>
+
+      {{#if errors}}
+        <ul class="error">
+          {{#each errors}}
+            <li>{{this.msg}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+      <button type="submit">Checkout</button>
+      </form>
+
+  {{else}}
+    <p>Please <a href="/login">log in</a> to place a custom order.</p>
+  {{/if}}
+{{/unless}}

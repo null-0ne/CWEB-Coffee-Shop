@@ -12,6 +12,8 @@ const { User } = require("./entity/User");
 const { Showcase } = require("./entity/Showcase");
 const { Review } = require("./entity/Review");
 const { Menu } = require("./entity/Menu");
+const { Order } = require("./entity/Order");
+const { OrderItem } = require("./entity/OrderItem");
 const {
     users,
     showcasePhotos,
@@ -628,6 +630,270 @@ app.post(
 
 //#endregion
 
+
+//------------Story 3 - Custom Orders - Roseanne Atchivara -------------
+/*********** CUSTOM ORDERS ************
+ * URL: http://localhost:8000/custom-orders
+************************************/
+
+/**
+ * Categorizes the menu items from the repository
+ * @returns an array of objects containing the category and an array of items in that cateogry
+ */
+async function loadCategorizedMenu() {
+  //Fetch Menu from DB with sort
+  const sortedMenu = await AppDataSource.getRepository(Menu).find(
+    {
+      order: {
+        //sorts menu and groups them into categories first 
+        category: "ASC",
+        title: "ASC"
+      }
+    }
+  )
+
+  //Create an array of all the available categories in the Menu
+  let categories = [];
+  sortedMenu.forEach(item => {
+    //if the category of the item doesn't exist in the categories array yet, add to categories
+    if (!categories.includes(item.category))
+    {
+      categories.push(item.category);
+    }
+  });
+
+  //For each categories, create an object containing the category name and 
+  // a filtered (by category) array of items
+  let categorizedMenu = [];
+  categories.forEach(categoryName => {
+    const items = sortedMenu.filter((item) => item.category === categoryName);
+    categorizedMenu.push(
+      { 
+        name: categoryName,
+        items: items
+      }
+    )
+  });
+  return categorizedMenu;
+}
+
+/**
+ * Grabs tomorrow's date and formats it to use for 
+ * HTML datetime-local's input's min="" property
+ * Catering Order is set up so that the bakery has 24hrs in advance to prep the order!
+ * @param {*} addMinutes extra minutes for default value in datetime-local min 
+ * @returns string for input min="" property
+ */
+function tomorrowDate(addMinutes = 0)
+{
+  //Sets date to tomorrow's date
+  const tomorrowsDate = new Date();
+  tomorrowsDate.setDate( tomorrowsDate.getDate() + 1);
+  tomorrowsDate.setTime( tomorrowsDate.getTime() + addMinutes * 60 * 1000);
+
+  //Formatter
+  const cateringDateFormatter = new Intl.DateTimeFormat("en-CA",
+    {
+      timeZone: "America/Regina",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit",
+      hourCycle: "h23"
+    }
+  );
+  return cateringDateFormatter.format(tomorrowsDate).replace(", ", "T");
+}
+
+//Fetch Menu and Store Info from DB
+app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
+  try {
+    const categorizedMenu = await loadCategorizedMenu();
+    //Using Garrett's function!
+    const storeInfo = await getContactStoreInformation();
+
+    //Render page
+    res.render('custom-orders', {
+      title: 'Place your Catering Order',
+      user: req.user,
+      menu_list: categorizedMenu,
+      caterDate: tomorrowDate(5),
+      caterMinDate: tomorrowDate(),
+      storeInfo: storeInfo.locationDetails
+    })
+  } catch (err) {
+    console.error("Error loading Custom Order Page:", err);
+
+    return res.status(500).render("custom-orders", {
+      title: "Error: Custom Order",
+      user: req.user,
+      menu_list: [],
+      error: "Unable to load page"
+    });
+  }
+});
+
+app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser, 
+  [
+    //Validation Rules
+    //Cater date must not be empty, must be a valid date, and must be 24 hours in advance
+    body("caterDate")
+    .notEmpty().withMessage("Please enter a date.").bail()
+    .isISO8601().withMessage("Please enter a valid date.").bail()
+    .custom((val) => {
+      return val >= tomorrowDate()
+    }).withMessage("Please allow 24 hours notice to prepare your order."),
+
+    // Order Quantities must be between 0 and 999
+    body("quantities.*")
+    .isInt( 
+      {
+        min: 0,
+        max: 999
+      }).withMessage("Item Quantity must be between 0 to 999"),
+
+    // At least one of the quantities must be > 0
+    body("quantities")
+    .custom((val) => {
+      const quantities = Object.values(val)
+      .some((quantity) => {
+        return Number(quantity) > 0
+      });
+      return quantities;
+    }).withMessage("Must have at least 1 item that has more than 0 quantity."),
+
+    // Special Instructions must be <= 255 and is optional
+    body("specialInstructions")
+    .optional()
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage("Special Instructions must be 255 characters max.")
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+
+    //Validation
+    if (!errors.isEmpty()) {
+      try {
+        const categorizedMenu = await loadCategorizedMenu();
+        //Using Garrett's function!
+        const storeInfo = await getContactStoreInformation();
+
+        //If validation fails (errors)
+        return res.status(400).render('custom-orders', {
+          title: 'Place your Catering Order',
+          user: req.user,
+          menu_list: categorizedMenu,
+          caterDate: req.body.caterDate,
+          caterMinDate: tomorrowDate(),
+          storeInfo: storeInfo.locationDetails,
+          errors: errors.array(),
+          input: req.body
+        });
+      } catch (err) {
+          //If something goes wrong with loading (error)
+          console.error("Error loading Custom Order Page:", err);
+          
+          return res.status(500).render("custom-orders", {
+            title: "Error: Custom Order",
+            user: req.user,
+            menu_list: [],
+            error: "Unable to load page"
+          });
+        }
+    }
+
+    try {
+      const menu = AppDataSource.getRepository(Menu);
+      const quantities = req.body.quantities;
+
+      let totalPrice = 0;
+      const orderItems = [];
+
+      // key is the item, value is the quantity
+      for (const item in quantities) {
+        const quantity = Number(quantities[item]);
+        if (quantity === 0) {
+          // ignores all 0s
+          continue;
+        }
+
+        //Added id in quantities' key to avoid losing key
+        //it creates arrays instead of objects if the keys are just numbers
+        const menuItem = await menu.findOneBy( { id: Number(item.replace("id", ""))} );
+        if (!menuItem) {
+          //just in case
+          continue;
+        }
+
+        // Calculate item's price x quantity and add to total
+        const price = Number(menuItem.price);
+        const overallPrice = price * quantity;
+        totalPrice += overallPrice;
+
+        //Add this item's information in orderItems
+        orderItems.push(
+          {
+            menuId: menuItem.id,
+            title: menuItem.title,
+            itemPrice: price.toFixed(2),
+            quantity: quantity,
+            overallPrice: overallPrice.toFixed(2)
+          }
+        )
+      }
+
+      //Send order details to Order
+      const order = AppDataSource.getRepository(Order);
+      const newOrder = order.create(
+        {
+          userId: req.user.id,
+          caterDate: req.body.caterDate,
+          specialInstructions: req.body.specialInstructions,
+          total: totalPrice
+        }
+      );
+      await order.save(newOrder);
+
+      //Send order item details to OrderItem
+      const orderItem = AppDataSource.getRepository(OrderItem);
+
+      for (const item of orderItems) {
+          const newOrderItem = orderItem.create({
+            orderId: newOrder.id,
+            menuId: item.menuId,
+            quantity: item.quantity,
+            unitPrice: item.itemPrice
+          }
+        );
+
+        await orderItem.save(newOrderItem);
+      }
+
+      //Using a different template for checkout
+      return res.render('order-checkout', {
+        title: "Order Placed",
+        user: req.user,
+        orderId: newOrder.id,
+        orderItems: orderItems,
+        total: totalPrice.toFixed(2),
+        caterDate: req.body.caterDate.replace("T", " at "),
+        specialInstructions: req.body.specialInstructions
+      })
+    } catch (err) {
+      //If something goes wrong with loading (error)
+      console.error("Error placing order:", err);
+      
+      return res.status(500).render("custom-orders", {
+        title: "Error: Custom Order",
+        user: req.user,
+        menu_list: [],
+        error: "We couldn't place your order. Please try again."
+      });
+    }
+  }
+);
+
+//------------End of Story 3 - Roseanne Atchivara -------------
+
 //------------Story 4 - Showcase Gallery - Multer - Kevin Obillo -------------
 
 //store uploaded files on disk
@@ -700,6 +966,7 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
     oldInput: req.query, // keeps the search box + sort dropdown filled in
   });
 });
+
 
 /**
  * Only logged in users can upload pictures.
