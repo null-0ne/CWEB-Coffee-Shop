@@ -237,6 +237,24 @@ app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
   }
 });
 
+// JSONIFY!
+app.get("/api/contact", async (req, res) => {
+  try {
+    const storeData = await getContactStoreInformation();
+
+    // My function already fetches the data and turns it into
+    // an object of three arrays ->> this translates perfectly
+    // to JASON:
+    res.json(storeData);
+  } catch (err) {
+    console.error("Error fetching store information: ", err);
+
+    return res.status(500).json({
+      error: "Error fetching store information",
+    });
+  }
+});
+
 app.post(
   "/contact",
   authenticateTokenFromCookie,
@@ -932,19 +950,16 @@ app.post(
 
 //------------Story 4 - Showcase Gallery - Multer - Kevin Obillo -------------
 //get all the photos from the showcase table, and then add the uploaders userName to each one
-async function getPhotoswUploader()
- {
+async function getPhotoswUploader() {
   const photos = await AppDataSource.getRepository(Showcase).find();
   const users = await AppDataSource.getRepository(User).find();
 
-  for(const photo of photos)
-  {
+  for (const photo of photos) {
     const uploader = users.find((user) => user.id === photo.userId);
     photo.uploaderName = uploader.userName;
   }
   return photos;
 }
-
 
 //store uploaded files on disk
 const storage = multer.diskStorage({
@@ -979,7 +994,7 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   const { search, sort } = req.query;
 
   const photos = await getPhotoswUploader(); // will use the async function instead, it'll grab the whole properties including the uploaders userName from the user table
-  
+
   let filteredPhotos = photos;
 
   //if the user typed something in search, only keep photos that match
@@ -1027,12 +1042,14 @@ app.get("/showcase/:id", async (req, res) => {
     where: { id: parseInt(req.params.id) }, // params are strings, the id column is a number
   });
 
-  // no photo with that id -> 404 error 
+  // no photo with that id -> 404 error
   if (!photo) {
     return res.status(404).json({ error: "Photo not found" });
   }
 
-  const uploader = await AppDataSource.getRepository(User).findOneBy({id: photo.userId});
+  const uploader = await AppDataSource.getRepository(User).findOneBy({
+    id: photo.userId,
+  });
 
   //send the photo details and uploader information back to the client
   //res.json() sends a response json to the client
@@ -1052,9 +1069,9 @@ app.get("/showcase/:id", async (req, res) => {
 //i cant use the /showcase/ route because its already a route for my HTML (ui)
 app.get("/api/showcase/", async (req, res) => {
   // get all photos plus who uploaded each one, newest first
-  const photos = await getPhotoswUploader(); 
+  const photos = await getPhotoswUploader();
 
-  //this is where im storing the json for each upload 
+  //this is where im storing the json for each upload
   const result = [];
   for (const photo of photos) {
     result.push({
@@ -1205,7 +1222,7 @@ app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
     success: "",
     error: "",
     user: req.user,
-    title: "Menu"
+    title: "Menu",
   });
 });
 
@@ -1247,7 +1264,7 @@ app.post(
         success: false,
         errors: errors.array(),
         user: req.user,
-        title: "Menu"
+        title: "Menu",
       });
     }
 
@@ -1260,7 +1277,6 @@ app.post(
 
     // Save this item to the database
     await menuRepository.save(newMenuItem);
-   
 
     // Render a third div, displaying the newly updated item
     res.render("menu", {
@@ -1272,7 +1288,7 @@ app.post(
         category: newMenuItem.category,
         price: "$" + newMenuItem.price,
       },
-      title: "Menu"
+      title: "Menu",
     });
   },
 );
