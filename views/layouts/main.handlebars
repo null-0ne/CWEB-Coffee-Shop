@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -11,6 +10,8 @@
     <a href="/">Home</a>
     <a href="/showcase">Showcase Gallery</a>
     <a href="/reviews">Reviews</a>
+    <a href="/contact">Contact Us</a>
+    <a href="/menu">Menu</a>
     {{#if user}}
       <span class="rt"> 
         <a href="/logout">Log Out</a>
@@ -26,9 +27,9 @@
     {{!-- USER WHO IS LOGGED IN --}}
   </nav>
 
-  <div class="container">
-    {{{body}}}
-  </div>
-</body>
+    <div class="container">
+      {{{body}}}
+    </div>
+  </body>
 </html>
 

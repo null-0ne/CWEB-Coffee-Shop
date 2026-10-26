@@ -1,0 +1,68 @@
+<div class="card">
+    <h2>Menu</h2>
+     <form action="/menu" method="GET">
+        <input type="search" name="search" placeholder="Search menu items" />
+        <select name="filter">
+          <option value="category" >Search By Category</option>
+           <option value="title" >Search By Name</option>
+            <option value="price" >Search By Price</option>
+        </select>
+        <button type="submit">Search</button>
+  </form>  
+  
+    <ul>
+        {{#each menuItems}}
+       
+            <li>
+               <div class="card">
+                <strong>{{this.title}}:</strong>  ${{this.price}}
+               </div>
+            </li>
+         
+        {{/each}}
+    </ul>
+
+</div>
+{{#if user}}
+{{!-- Add a menu Item --}}
+<div class="card">
+  <h2>Add A Menu Item</h2>
+    {{#if errors}}
+    <p>
+      <ul class="error">
+      {{#each errors}}
+        <li>{{this.msg}}</li>
+      {{/each}}
+    </ul>
+    </p>
+  {{/if}}
+
+  {{#if success}}
+    <p class="success">Item uploaded successfully</p>
+  {{/if}}
+      
+  <form action="/menu" method="POST" >
+    <label>Select item name</label>
+    <input type="text" name="itemName" required />
+     <label>Select item category</label>
+    <input type="text" name="itemType" required />
+     <label>Select item price</label>
+    <input type="text" name="itemPrice" required />
+    <button type="submit">Upload</button>
+  </form>
+</div>
+{{else}}
+<p><a href = "/login">Login</a> to add a new item</p>
+{{/if}}
+
+
+{{#if newItem}}
+<div class="card">
+  <h2>New Item added</h2>
+  <ul>
+    <li>Name: {{newItem.title}}</li>
+      <li>Category: {{newItem.category}}</li>
+      <li>Price: {{newItem.price}}</li>
+  </ul>
+</div>
+{{/if}}

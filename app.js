@@ -1,22 +1,30 @@
 const express = require("express");
-const {randomUUID} = require('crypto')
+const { randomUUID } = require("crypto");
 const exphbs = require("express-handlebars");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
-const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const { AppDataSource } = require("./data-source")
-const { users, showcasePhotos, reviews } = require('./fixtures/data-seed'); // please add your fixture data seed here
-const { User } = require('./entity/User');
-const { Showcase } = require("./entity/Showcase"); // showcase database
+const jwt = require("jsonwebtoken");
+const { AppDataSource } = require("./data-source");
+const { Submission } = require("./entity/Submission");
+const { StoreInformation } = require("./entity/StoreInformation");
+const { User } = require("./entity/User");
+const { Showcase } = require("./entity/Showcase");
 const { Review } = require("./entity/Review");
-const reviewRepository = AppDataSource.getRepository(Review);
-
+const { Menu } = require("./entity/Menu");
+const {
+    users,
+    showcasePhotos,
+    reviews,
+    storeInformation,
+    menu,
+} = require("./fixtures/data-seed");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
 const PORT = 8000;
 const SECRET_KEY = "mysecret";
+
 /******************************** CONFIGURE HANDLEBARS *******************************/
 // The custom helpers make it easier to format data in templates.
 const hbs = exphbs.create({
@@ -28,7 +36,7 @@ const hbs = exphbs.create({
     //helper function --> formats the date and time
     //say we uploaded the picture right now -> "2026-10-18T18:00:00"
     //output will be : 2026-10-18, 6:00 p.m.
-    formatShortDate: (dateString) => 
+    formatShortDate: (dateString) =>
       new Intl.DateTimeFormat("en-CA", {
         dateStyle: "short",
         timeStyle: "short",
@@ -45,7 +53,6 @@ app.use(express.static("./public")); // make files and folder in the public fold
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-
 
 // Middleware to authenticate JWT from cookie
 function authenticateTokenFromCookie(req, res, next) {
@@ -65,62 +72,84 @@ function authenticateTokenFromCookie(req, res, next) {
   });
 }
 
+function authorizeCurrentUser(req, res, next) {
+  if (!req.user) {
+    return res.redirect("/login");
+  }
+
+  next();
+}
+
 // Connect DB
 AppDataSource.initialize()
   .then(() => {
-    console.log("DB Connected ");
+    console.log("DB Connected");
   })
   .then(async () => {
     const userRepository = AppDataSource.getRepository(User); // get user repository
-    if(await userRepository.count() ===0 ) {
+    if ((await userRepository.count()) === 0) {
       const userEntities = userRepository.create(users); // Create objects based on User entity
       await userRepository.save(userEntities); // Save fake data to the database
-    } 
-}).then(async () => {
-  const userRepository = AppDataSource.getRepository(User); // get user repository
-  //story 4 -- for my seed i just used the userName to find the person who uploaded it
-  //so i need the userRepo to  lookup the actual user so I can get their userId.
-  //IMPORTANT: becuase on my table, userId is connected to the users table as foreign key.
-  const showcaseRepository = AppDataSource.getRepository(Showcase); // get showcase repository
-  //Only add the seed data if the showcase table is empty, so we dont add the same fake datas again. 
-  //Note, if we run the SQL - it'll truncate the table and this will feed the fake data again
-  if(await showcaseRepository.count() === 0) {
-    const photosWithUserId = []; //The empty array which will store the photos with their real userId
-    for(const photo of showcasePhotos)
-    {
-      //this way i can find the real user by userName so userId can matches the foreign key
-      const uploader = await userRepository.findOneBy({userName: photo.userName});
-      if(uploader)
-      {
-        photosWithUserId.push({...photo, userId: uploader.id});//copying the photo data and adding the uploaders actual id
-      }
+      console.log("Users seeded")
     }
-    const showcaseEntities = showcaseRepository.create(photosWithUserId); //turning the photo datas into Showcase object
-    await showcaseRepository.save(showcaseEntities); // save fake data to database
-  }
-}).then(async () => {
-  const reviewRepository = AppDataSource.getRepository(Review);
-  const userRepositroy = AppDataSource.getRepository(users);
-  if(await userRepositroy.count === 0)
-  {
-    for (const user of users) {
-        const existingUser = await reviewRepository.findOne({
-            where: { userId: user.userId },
+  })
+  .then(async () => {
+    const userRepository = AppDataSource.getRepository(User); // get user repository
+    //story 4 -- for my seed i just used the userName to find the person who uploaded it
+    //so i need the userRepo to  lookup the actual user so I can get their userId.
+    //IMPORTANT: becuase on my table, userId is connected to the users table as foreign key.
+    const showcaseRepository = AppDataSource.getRepository(Showcase); // get showcase repository
+    //Only add the seed data if the showcase table is empty, so we dont add the same fake datas again.
+    //Note, if we run the SQL - it'll truncate the table and this will feed the fake data again
+    if ((await showcaseRepository.count()) === 0) {
+      const photosWithUserId = []; //The empty array which will store the photos with their real userId
+      for (const photo of showcasePhotos) {
+        //this way i can find the real user by userName so userId can matches the foreign key
+        const uploader = await userRepository.findOneBy({
+          userName: photo.userName,
         });
-        if(!existingUser)
-        {
-            const newUser = reviewRepository.create(user);
-            await reviewRepository.save(newUser);
+        if (uploader) {
+          photosWithUserId.push({ ...photo, userId: uploader.id }); //copying the photo data and adding the uploaders actual id
         }
-        console.log(
-        `${existingUser ? 'Created' : 'Skipped'} user: ${user.userId}`
-        );
-        const reviewEntities = reviewRepository.create(reviews);
-        await reviewRepository.save(reviewEntities);
+      }
+      const showcaseEntities = showcaseRepository.create(photosWithUserId); //turning the photo datas into Showcase object
+      await showcaseRepository.save(showcaseEntities); // save fake data to database
+      console.log("Showcase seeded")
     }
-  }
-    
-})
+  })
+  .then(async () => {
+    const reviewRepository = AppDataSource.getRepository(Review);
+    // Seed reviews only when the table is empty.
+    if ((await reviewRepository.count()) === 0) {
+      const reviewEntities = reviewRepository.create(reviews);
+      await reviewRepository.save(reviewEntities);
+      console.log("Reviews seeded")
+    }
+  })
+  .then(async () => {
+    const storeInformationRepository =
+      AppDataSource.getRepository(StoreInformation);
+
+    // Seed store information only when the table is empty.
+    if ((await storeInformationRepository.count()) === 0) {
+      const storeInformationEntities =
+        storeInformationRepository.create(storeInformation);
+
+      await storeInformationRepository.save(storeInformationEntities);
+      console.log("Store information seeded.");
+    }
+  })
+   .then(async () => {
+        //create menu repository
+        const menuRepository = AppDataSource.getRepository(Menu);
+        if(await menuRepository.count() === 0){ //if table is empty, seed the data in
+        const MenuEntries = menuRepository.create(menu);
+
+        //seed menu entries into menu table
+        await menuRepository.save(MenuEntries);
+        console.log("Menu information seeded");
+        }
+    })
   .catch((err) => console.error(err));
 
 /*********** HOME PAGE ************
@@ -134,7 +163,6 @@ app.get("/", authenticateTokenFromCookie, (req, res) => {
     // result in a false in main.handlebars
 
     students: [
-      //TODO Add you team names alphabetically by first name (include First letter of Family name)
       { name: "Garrett T.", section: "Contact & Hours" },
       { name: "Kevin O.", section: "Showcase Gallery - Multer" },
       { name: "Roseanne A.", section: "Custom Orders" },
@@ -145,28 +173,54 @@ app.get("/", authenticateTokenFromCookie, (req, res) => {
   });
 });
 
-// Middleware to authenticate JWT from cookie
-function authenticateTokenFromCookie(req, res, next) {
-  const token = req.cookies.token;
-  // If the token doesn't exist ( user is not logged in )
-  // do nothing and move on from middleware
-  if (!token){ 
-    //res.status(401).json({ error: 'Missing token' });
-    return next();
-  } //return res.status(401).json({ error: 'Missing token' });
+// Contact page: display the form and store information
+app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
+  try {
+    const storeInformationRepo = AppDataSource.getRepository(StoreInformation);
 
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user;
-    // req.user.id would give the id because the token is linked to a specific user so once the JWT is verified it returns the "decoded" payload
-    next();
-  });
-}
+    const storeInformation = await storeInformationRepo.find({
+      order: {
+        displayOrder: "ASC", // Displaying information in ascending order
+      },
+    });
+
+    // Group each db record so each section is displayed
+    const contactDetails = storeInformation.filter(
+      (item) => item.category === "contact",
+    );
+    const locationDetails = storeInformation.filter(
+      (item) => item.category === "location",
+    );
+    const hours = storeInformation.filter((item) => item.category === "hours");
+
+    return res.render("contact", {
+      title: "Contact Us",
+      user: req.user,
+      input: {},
+      contactDetails,
+      locationDetails,
+      hours,
+    });
+  } catch (err) {
+    console.error("Error fetching store information:", err);
+
+    // Database/server error
+    return res.status(500).render("contact", {
+      title: "Contact Us",
+      user: req.user,
+      input: {},
+      error: "We couldn't load the store information right now.",
+      contactDetails: [],
+      locationDetails: [],
+      hours: [],
+    });
+  }
+});
 
 /**
  * LOGIN GET request
  */
-app.get("/login", (req, res) => {
+app.get("/login", authenticateTokenFromCookie, (req, res) => {
   res.render("account-auth", {
     title: "Login",
     user: req.user,
@@ -211,7 +265,151 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/register", (req, res) => {
+//------------Story 6 - Contact & Hours - Garrett Thomson -------------
+
+// Helper function to retrieve the store information for the Contact page.
+async function getContactStoreInformation() {
+  const storeInformationRepo = AppDataSource.getRepository(StoreInformation);
+
+  const storeInformation = await storeInformationRepo.find({
+    order: {
+      displayOrder: "ASC", // Displaying information in ascending order
+    },
+  });
+
+  // Group each db record so each section is displayed
+  return {
+    contactDetails: storeInformation.filter(
+      (item) => item.category === "contact",
+    ),
+    locationDetails: storeInformation.filter(
+      (item) => item.category === "location",
+    ),
+    hours: storeInformation.filter((item) => item.category === "hours"),
+  };
+}
+
+app.post(
+  "/contact",
+  authenticateTokenFromCookie,
+  authorizeCurrentUser,
+  [
+    body("name")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter your name.")
+      .isLength({ max: 255 })
+      .withMessage("Name must be 255 characters or fewer."),
+
+    body("email")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter your email.")
+      .bail()
+      .isEmail()
+      .withMessage("Please enter a valid email address.")
+      .isLength({ max: 255 })
+      .withMessage("Email must be 255 characters or fewer."),
+
+    body("subject")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter a subject.")
+      .isLength({ max: 255 })
+      .withMessage("Subject must be 255 characters or fewer."),
+
+    body("message")
+      .trim()
+      .notEmpty()
+      .withMessage("Please enter a message.")
+      .isLength({ min: 10, max: 5000 })
+      .withMessage("Message must be between 10 and 5000 characters."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      // Invalid form input error
+      try {
+        const storeData = await getContactStoreInformation();
+
+        return res.status(400).render("contact", {
+          title: "Contact Us",
+          user: req.user,
+          errors: errors.array(),
+          input: req.body,
+          ...storeData,
+        });
+      } catch (err) {
+        console.error("Error fetching store information:", err);
+        return res.status(500).render("contact", {
+          title: "Contact Us",
+          user: req.user,
+          input: req.body,
+          error: "We couldn't load the store information right now.",
+          contactDetails: [],
+          locationDetails: [],
+          hours: [],
+        });
+      }
+    }
+
+    try {
+      const submissionRepo = AppDataSource.getRepository(Submission);
+
+      const submission = submissionRepo.create({
+        userId: req.user.id,
+        name: req.body.name.trim(),
+        email: req.body.email.trim(),
+        subject: req.body.subject.trim(),
+        message: req.body.message.trim(),
+      });
+
+      await submissionRepo.save(submission);
+
+      const storeData = await getContactStoreInformation();
+
+      return res.render("contact", {
+        title: "Contact Us",
+        user: req.user,
+        input: {},
+        success: "Thank you! Your inquiry has been submitted.",
+        ...storeData,
+      });
+    } catch (err) {
+      console.error("Error saving contact inquiry:", err);
+
+      // Server/database error
+      try {
+        const storeData = await getContactStoreInformation();
+
+        return res.status(500).render("contact", {
+          title: "Contact Us",
+          user: req.user,
+          input: req.body,
+          error: "We couldn't submit your inquiry right now. Please try again.",
+          ...storeData,
+        });
+      } catch (storeErr) {
+        console.error("Error fetching store information:", storeErr);
+
+        return res.status(500).render("contact", {
+          title: "Contact Us",
+          user: req.user,
+          input: req.body,
+          error: "We couldn't submit your inquiry right now. Please try again.",
+          contactDetails: [],
+          locationDetails: [],
+          hours: [],
+        });
+      }
+    }
+  },
+);
+
+//-------------------------END OF STORY 6 --------------------------------
+
+app.get("/register", authenticateTokenFromCookie, (req, res) => {
   res.render(
     "account-auth", // handlebar template with both register and login forms
     {
@@ -290,6 +488,7 @@ app.post(
       SECRET_KEY,
       { expiresIn: "1h" },
     );
+
     // Set token in HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
@@ -341,7 +540,9 @@ app.get("/reviews", authenticateTokenFromCookie, async (req, res) => {
   if (!req.user) {
     return res.redirect("http://localhost:8000/login");
   }
+
   try {
+    const reviewRepository = AppDataSource.getRepository(Review);
     const reviewsData = await reviewRepository.find({
       order: {
         reviewDate: "DESC",
@@ -350,6 +551,7 @@ app.get("/reviews", authenticateTokenFromCookie, async (req, res) => {
 
     res.render("reviews", {
       title: "Reviews and Ratings",
+      user: req.user,
       reviews: reviewsData,
     });
   } catch (err) {
@@ -370,19 +572,24 @@ app.post(
     if (!req.user) {
       return res.redirect("http://localhost:8000/");
     }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       // Re-render form with errors and old input
       return res.render("reviews", {
+        title: "Reviews and Ratings",
+        user: req.user,
         errors: errors.array(),
         oldInput: req.body,
       });
     }
 
     try {
+      const reviewRepository = AppDataSource.getRepository(Review);
       const check = await reviewRepository.findOne({
         where: { userId: req.user.id },
       });
+
       if (check) {
         await reviewRepository.update(
           { userId: req.user.id }, // WHERE clause
@@ -393,7 +600,7 @@ app.post(
           },
         );
       } else {
-        const newReview = await reviewRepository.create({
+        const newReview = reviewRepository.create({
           userId: req.user.id,
           rating: req.body.rating,
           review: req.body.review,
@@ -409,9 +616,12 @@ app.post(
       });
 
       return res.render("reviews", {
+        title: "Reviews and Ratings",
+        user: req.user,
         reviews: reviewsData,
       });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: "Failed to create Review: " + error });
     }
   },
@@ -420,16 +630,6 @@ app.post(
 //#endregion
 
 //------------Story 4 - Showcase Gallery - Multer - Kevin Obillo -------------
-
-//function which sends the user to the log in screen if they are not authorize user
-//middleware
-function authorizeCurrentUser(req, res, next) {
-  if (!req.user) {
-    return res.redirect("/login");
-  }
-  next();
-}
-
 
 //store uploaded files on disk
 const storage = multer.diskStorage({
@@ -443,7 +643,7 @@ const storage = multer.diskStorage({
 //if not an image file, it'll reject the file and will show an error
 const showcaseUpload = multer({
   storage: storage,
-  //limited of 2,097,152 or 2MB 
+  //limited of 2,097,152 or 2MB
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, callBack) => {
     //file mime type -> image only
@@ -464,11 +664,9 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   const { search, sort } = req.query;
 
   //need to get hte photos from the showcase table
-  const photos = await AppDataSource.getRepository(Showcase).find(
-    {
-      relations: { user : true}, // this is going to load the uploader from user table
-    }
-  );
+  const photos = await AppDataSource.getRepository(Showcase).find({
+    relations: { user: true }, // this is going to load the uploader from user table
+  });
 
   let filteredPhotos = photos;
 
@@ -479,7 +677,8 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
       (photo) =>
         // if i want to search using the title or description?
         photo.title.toLowerCase().includes(searchLower) ||
-        (photo.description && photo.description.toLowerCase().includes(searchLower)), //check if the description exist first before searching it
+        (photo.description &&
+          photo.description.toLowerCase().includes(searchLower)), //check if the description exist first before searching it
     );
   }
 
@@ -495,7 +694,7 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 
   res.render("showcase", {
-    hasPhotos: photos.length > 0 , // same logic we used for example lo2. using this below the upload button
+    hasPhotos: photos.length > 0, // same logic we used for example lo2. using this below the upload button
     title: "Showcase Gallery",
     user: req.user, // same name Rylan uses
     photos: filteredPhotos,
@@ -508,98 +707,212 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
  * authenticateTokenFromCookie -> this will set the req.user
  * authorizeCurrentUser -> will send the user to /login if user is not authorized to upload
  * showcaseUpload.single("photo") -> for multr to read the form
- * 
+ *
  */
 app.post(
   "/showcase",
   authenticateTokenFromCookie,
   authorizeCurrentUser,
   showcaseUpload.single("photo"),
-  [//i want to add a validator for the title and description as well
+  [
+    //i want to add a validator for the title and description as well
     //when a user is uploading a picture, they can manually put the title
     //of what are they trying to upload + the description(optional only).
-    //https://express-validator.github.io/docs/api/validation-chain/#notempty   
+    //https://express-validator.github.io/docs/api/validation-chain/#notempty
     //validator chains
     //notEmpty -> checks if the title is NOT EMPTY
     //withMessage -> will set the error message if .notEmpty fails
-    //.custom 
-    body('title').notEmpty().withMessage('Title is required').custom((val) => {
-      if(val.length > 50) {
-        throw new Error ("Title must be only 50 characters or less")
-      }
-      return true;
-    }),
+    body("title")
+      .notEmpty()
+      .withMessage("Title is required")
+      .custom((val) => {
+        if (val.length > 50) {
+          throw new Error("Title must be only 50 characters or less");
+        }
+        return true;
+      }),
     //since i want the description to be 'only optional'
-    //i dont need a validator here but i want to limit 
+    //i dont need a validator here but i want to limit
     //the user's description?
     //https://express-validator.github.io/docs/api/validation-chain/#optional
-    body('description').optional().custom ((val) => {
-      if(val.length > 250 ){
-        throw new Error ("Description must only 250 characters or less")
-      }
-      return true;
-    })
+    body("description")
+      .optional()
+      .custom((val) => {
+        if (val.length > 250) {
+          throw new Error("Description must only 250 characters or less");
+        }
+        return true;
+      }),
   ],
-async (req, res) => {
+  async (req, res) => {
+    //for validation express i need to collect the error checks
+    //https://express-validator.github.io/docs/6.0.0/validation-result-api/
+    const errors = validationResult(req).array();
 
-  //for validation express i need to collect the error checks 
-  //https://express-validator.github.io/docs/6.0.0/validation-result-api/
-  const errors = validationResult(req).array();
+    //Multer adds req.file when a valid file is uploaded
+    if (!req.file) {
+      //if no file arrived, show to upload form again with an error message..
+      errors.push({ msg: "Please upload a valid image file." }); // putting this error inside our errors arrays if file is not valid
+    }
 
-  //Multer adds req.file when a valid file is uploaded
-  if(!req.file) {
-    //if no file arrived, show to upload form again with an error message..
-    errors.push({msg: 'Please upload a valid image file.'}); // putting this error inside our errors arrays if file is not valid
-  } 
+    if (errors.length > 0) {
+      //if something is wrong, itll just show the page again with the errors
+      const photos = await AppDataSource.getRepository(Showcase).find({
+        relations: { user: true }, // added this aswell for the relations of my showcase
+      });
 
-  if(errors.length > 0){
-    //if something is wrong, itll just show the page again with the errors
-    const photos = await AppDataSource.getRepository(Showcase).find(
-      {
-        relations: {user : true}, // added this aswell for the relations of my showcase
-      }
-    );
-    //so the photos that'll be shown is when it was uploaded - newest photos first
-    photos.sort((a,b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+      //so the photos that'll be shown is when it was uploaded - newest photos first
+      photos.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
 
-    //render the showcase handlebar again
-    return res.render("showcase", {
-      hasPhotos: photos.length > 0,
-      title: "Showcase Gallery",
-      user: req.user,
-      photos: photos,
-      errors: errors,
-      oldInput: req.body, // this part will just keep what the user typed in the title and description
-    });
-  }
+      //render the showcase handlebar again
+      return res.render("showcase", {
+        hasPhotos: photos.length > 0,
+        title: "Showcase Gallery",
+        user: req.user,
+        photos: photos,
+        errors: errors,
+        oldInput: req.body, // this part will just keep what the user typed in the title and description
+      });
+    }
 
-  //i need to build the photo info base on my database, must match the showcase entity columns or it'll crash
-  //uploadDate will be automtically filled in bec of typeORM
-  const photoInfo = {
-    title: req.body.title,
-    description: req.body.description,
-    fileName: req.file.filename,
-    userId: req.user.id // id of the logged in user, from Rylans token
-  }
+    //i need to build the photo info base on my database, must match the showcase entity columns or it'll crash
+    //uploadDate will be automtically filled in bec of typeORM
+    const photoInfo = {
+      title: req.body.title,
+      description: req.body.description,
+      fileName: req.file.filename,
+      userId: req.user.id, // id of the logged in user, from Rylans token
+    };
 
-  //now if no errors and it was a successful upload
-  //need to save the info to the data base
-  await AppDataSource.getRepository(Showcase).save(photoInfo);
-  //debugger -- delete later
-  console.log('New showcase photo: ', photoInfo)
+    //now if no errors and it was a successful upload
+    //need to save the info to the data base
+    await AppDataSource.getRepository(Showcase).save(photoInfo);
+    //debugger -- delete later
+    console.log("New showcase photo: ", photoInfo);
 
-  //this will just redirect or refresh the page so the new photo shows up
-  res.redirect("/showcase")
-    
-}
+    //this will just redirect or refresh the page so the new photo shows up
+    res.redirect("/showcase");
+  },
 );
 
 //-------------------------END OF STORY 4 --------------------------------
 
+// ---------------------------- STORY 2: SAMUEL CYRENNE ---------------------------------------------
+app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
+    const menuRepository = await AppDataSource.getRepository(Menu);
 
+    //grab all items in the menu
+    const menuItems = await menuRepository.find();
+    const { search, filter } = req.query;
+    let filteredMenuItems = menuItems;
 
+     filteredMenuItems.map((item)=>{
+      console.log(item);
+    });
+   
+    if (
+        search
+    ) //if search isnt empty, filter the query and return the new menu items
+    {
+        const menuSearchLower = search.toLowerCase(); //remove case-sensitivity from search results
+        if (filter === "title") {
+            filteredMenuItems = menuItems.filter((item) =>
+                // if searching by item name [title]
+                item.title.toLowerCase().includes(menuSearchLower)
+            );
+        } else if (filter === "category") {
+            filteredMenuItems = menuItems.filter((item) =>
+                // if searching by item category (like drink or food)
+                item.category.toLowerCase().includes(menuSearchLower)
+            );
+        }
+        else if (filter === "price") {
+            filteredMenuItems = menuItems.filter((item) =>
+                // if searching by price
+                item.price.includes(menuSearchLower)
+            );
+        }
+    }
+
+   
+
+   
+
+    
+    res.render("menu", {
+        menuItems: filteredMenuItems,
+        success: "",
+        error: "",
+        user: req.user
+    });
+});
+
+//ADD NEW MENU ITEM
+app.post(
+    "/menu",
+    authenticateTokenFromCookie,
+    authorizeCurrentUser,
+    [
+        //https://express-validator.github.io/docs/api/validation-chain/#standard-validators
+        //middleware - express-validator uses to create the "rules"
+        body("itemName").trim().isLength({ min: 2 }).withMessage("Item title must be at least 2 characters")
+            .isAlpha().withMessage("Title cannot be a number"),
+        body("itemType").trim().isLength({ min: 2 }).withMessage("Item category must be at least 2 characters")
+            .isAlpha().withMessage("Category cannot be a number"),
+        body("itemPrice").trim().isLength({min: 1}).toFloat().
+            isNumeric().withMessage("Item price must be a number")
+    ],
+    async (req, res) => {
+        const validationError = validationResult(req);
+        console.log(validationError);
+
+        const menuRepository = await AppDataSource.getRepository(Menu);
+        const errors = validationResult(req);
+
+       
+        
+        const { itemName, itemType, itemPrice } = req.body; //the three form values
+
+        //if validation error occurs, render the page with the error
+        if  (!errors.isEmpty()) {
+            return res.render("menu", {
+                success: false,
+                errors: errors.array(),
+                 user: req.user,
+
+            });
+        }
+
+       
+        
+
+        const newMenuItem = {
+            title: itemName,
+            category: itemType,
+            userId: req.user.id, 
+            price: itemPrice,
+        };
+
+        // Save this item to the database
+        await menuRepository.save(newMenuItem);
+        console.log("USER: " + req.user);
+
+        // Render a third div, displaying the newly updated item
+        res.render("menu", {
+            success: true,
+            error: null,
+             user: req.user,
+            newItem: {
+                title : newMenuItem.title,
+                category:  newMenuItem.category,
+                price:  "$" + newMenuItem.price
+            },
+           
+        });
+    },
+);
 
 /*********** Start the server *************/
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}`);
 });
