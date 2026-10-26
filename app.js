@@ -19,6 +19,7 @@ const {
   reviews,
   storeInformation,
   menu,
+  orders
 } = require("./fixtures/data-seed");
 const req = require("express/lib/request");
 
@@ -153,6 +154,15 @@ AppDataSource.initialize()
       console.log("Menu information seeded");
     }
   })
+  .then(async () => {
+    const orderRepository = AppDataSource.getRepository(Order); // get order repository
+    // ensure we don't keep adding the same seed data
+    if ((await orderRepository.count()) === 0) {
+      const orderEntities = orderRepository.create(orders); // Create objects based on Order entity
+      await orderRepository.save(orderEntities); // Save fake data to the database
+      console.log("Orders seeded");
+    }
+  })
   .catch((err) => console.error(err));
 
 /*********** HOME PAGE ************
@@ -229,54 +239,7 @@ app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
   }
 });
 
-/**
- * LOGIN GET request
- */
-app.get("/login", authenticateTokenFromCookie, (req, res) => {
-  res.render("account-auth", {
-    title: "Login",
-    user: req.user,
-    isRegister: false,
-  });
-});
 
-app.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.redirect("/"); // Not sure how to redirect back to the page you were on, but that might not be proper functionality anyway
-});
-
-app.post("/login", async (req, res) => {
-  const { id, userName, email, password } = req.body;
-  // create repository
-  const userRepository = AppDataSource.getRepository(User);
-  // query the database to find a user based on the inputted email
-  const user = await userRepository.findOneBy({ email: email });
-  // check if that user exists and if the password matches
-  if (user && password === user.password) {
-    // If password matches, log in and redirect
-    // create JWT
-    const token = jwt.sign(
-      { id: user.id, userName: user.userName },
-      SECRET_KEY,
-      { expiresIn: "1h" },
-    );
-    // Set token in HttpOnly cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // set true if using HTTPS
-      maxAge: 60 * 60 * 1000, // 1 hour
-    });
-    res.redirect("/");
-  } else {
-    return res.render("account-auth", {
-      title: "Login",
-      user: req.user,
-      isRegister: false,
-      errors: [{ msg: "Email or password is incorrect" }],
-      oldInput: req.body,
-    });
-  }
-});
 
 //------------Story 6 - Contact & Hours - Garrett Thomson -------------
 
