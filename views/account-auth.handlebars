@@ -36,10 +36,10 @@
 {{else}}
 <form action="/login" method="POST">
     <label>Email</label>
-    <input type="email" name="email" value="{{oldInput.email}}" placeholder="admin@test.ca" required />
+    <input type="email" name="email" value="{{oldInput.email}}" placeholder="johndoe@test.ca" />
 
     <label>Password</label>
-    <input type="password" name="password" value="{{oldInput.password}}" placeholder="12345Pwd" required />
+    <input type="password" name="password" value="{{oldInput.password}}" placeholder="12345Pwd!" />
     {{#if errors.length}}
       <div class="error">
         <ul>

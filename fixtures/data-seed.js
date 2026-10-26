@@ -432,3 +432,153 @@ module.exports.showcasePhotos = [
     description: "Cold brew topped with pumpkin cream cold foam.",
   },
 ];
+
+module.exports.Orders = [
+  {
+    userId: 1,
+    caterDate: new Date("2026-11-01 12:00:00"),
+    specialInstructions: "Vegetarian options required",
+    total: 89.97
+  },
+  {
+    userId: 2,
+    caterDate: new Date("2026-11-02 18:00:00"),
+    specialInstructions: null,
+    total: 45.50
+  },
+  {
+    userId: 3,
+    caterDate: new Date("2026-11-03 11:30:00"),
+    specialInstructions: "Extra napkins",
+    total: 120.00
+  },
+  {
+    userId: 4,
+    caterDate: new Date("2026-11-05 13:00:00"),
+    specialInstructions: null,
+    total: 32.99
+  },
+  {
+    userId: 5,
+    caterDate: new Date("2026-11-06 17:30:00"),
+    specialInstructions: "Gluten-free meal requested",
+    total: 75.25
+  },
+  {
+    userId: 1,
+    caterDate: new Date("2026-11-08 12:15:00"),
+    specialInstructions: null,
+    total: 59.99
+  },
+  {
+    userId: 6,
+    caterDate: new Date("2026-11-09 19:00:00"),
+    specialInstructions: "Deliver to side entrance",
+    total: 210.50
+  },
+  {
+    userId: 7,
+    caterDate: new Date("2026-11-10 11:00:00"),
+    specialInstructions: null,
+    total: 28.75
+  },
+  {
+    userId: 8,
+    caterDate: new Date("2026-11-12 14:30:00"),
+    specialInstructions: "No onions",
+    total: 67.45
+  },
+  {
+    userId: 3,
+    caterDate: new Date("2026-11-14 16:00:00"),
+    specialInstructions: null,
+    total: 135.80
+  },
+  {
+    userId: 9,
+    caterDate: new Date("2026-11-15 12:00:00"),
+    specialInstructions: "Birthday event",
+    total: 180.00
+  },
+  {
+    userId: 10,
+    caterDate: new Date("2026-11-18 18:30:00"),
+    specialInstructions: null,
+    total: 49.95
+  }
+];
+
+module.exports.orderItems = [
+  {
+    orderId: 1,
+    menuId: 1,
+    quantity: 3,
+    unitPrice: 29.99
+  },
+  {
+    orderId: 2,
+    menuId: 2,
+    quantity: 2,
+    unitPrice: 22.75
+  },
+  {
+    orderId: 3,
+    menuId: 1,
+    quantity: 4,
+    unitPrice: 30.00
+  },
+  {
+    orderId: 4,
+    menuId: 3,
+    quantity: 1,
+    unitPrice: 32.99
+  },
+  {
+    orderId: 5,
+    menuId: 4,
+    quantity: 3,
+    unitPrice: 25.08
+  },
+  {
+    orderId: 6,
+    menuId: 2,
+    quantity: 2,
+    unitPrice: 29.99
+  },
+  {
+    orderId: 7,
+    menuId: 5,
+    quantity: 5,
+    unitPrice: 42.10
+  },
+  {
+    orderId: 8,
+    menuId: 6,
+    quantity: 1,
+    unitPrice: 28.75
+  },
+  {
+    orderId: 9,
+    menuId: 4,
+    quantity: 3,
+    unitPrice: 22.48
+  },
+  {
+    orderId: 10,
+    menuId: 5,
+    quantity: 4,
+    unitPrice: 33.95
+  },
+  {
+    orderId: 11,
+    menuId: 1,
+    quantity: 6,
+    unitPrice: 30.00
+  },
+  {
+    orderId: 12,
+    menuId: 3,
+    quantity: 3,
+    unitPrice: 16.65
+  }
+];

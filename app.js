@@ -1,5 +1,4 @@
 const express = require("express");
-const { randomUUID } = require("crypto");
 const exphbs = require("express-handlebars");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
@@ -12,6 +11,7 @@ const { User } = require("./entity/User");
 const { Showcase } = require("./entity/Showcase");
 const { Review } = require("./entity/Review");
 const { Menu } = require("./entity/Menu");
+const { Order } = require("./entity/Order");
 const {
     users,
     showcasePhotos,
@@ -19,6 +19,7 @@ const {
     storeInformation,
     menu,
 } = require("./fixtures/data-seed");
+const req = require("express/lib/request");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -62,8 +63,7 @@ function authenticateTokenFromCookie(req, res, next) {
   if (!token) {
     //res.status(401).json({ error: 'Missing token' });
     return next();
-  } //return res.status(401).json({ error: 'Missing token' });
-
+  } 
   jwt.verify(token, SECRET_KEY, (err, user) => {
     if (err) return res.status(403).json({ error: "Invalid token" });
     req.user = user;
@@ -87,6 +87,7 @@ AppDataSource.initialize()
   })
   .then(async () => {
     const userRepository = AppDataSource.getRepository(User); // get user repository
+    // ensure we don't keep adding the same seed data
     if ((await userRepository.count()) === 0) {
       const userEntities = userRepository.create(users); // Create objects based on User entity
       await userRepository.save(userEntities); // Save fake data to the database
@@ -217,53 +218,7 @@ app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
   }
 });
 
-/**
- * LOGIN GET request
- */
-app.get("/login", authenticateTokenFromCookie, (req, res) => {
-  res.render("account-auth", {
-    title: "Login",
-    user: req.user,
-    isRegister: false,
-  });
-});
-app.get("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.redirect("/");
-});
 
-app.post("/login", async (req, res) => {
-  const { id, userName, email, password } = req.body;
-  // create repository
-  const userRepository = AppDataSource.getRepository(User);
-  // query the database to find a user based on the inputted email
-  const user = await userRepository.findOneBy({ email: email });
-  // check if that user exists and if the password matches
-  if (user && password === user.password) {
-    // If password matches, log in and redirect
-    // create JWT
-    const token = jwt.sign(
-      { id: user.id, userName: user.userName },
-      SECRET_KEY,
-      { expiresIn: "1h" },
-    );
-    // Set token in HttpOnly cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // set true if using HTTPS
-      maxAge: 60 * 60 * 1000, // 1 hour
-    });
-    res.redirect("/");
-  } else {
-    return res.render("account-auth", {
-      title: "Login",
-      user: req.user,
-      isRegister: false,
-      errors: [{ msg: "Email or password is incorrect" }],
-      oldInput: req.body,
-    });
-  }
-});
 
 //------------Story 6 - Contact & Hours - Garrett Thomson -------------
 
@@ -409,6 +364,66 @@ app.post(
 
 //-------------------------END OF STORY 6 --------------------------------
 
+/**************************Story 1 Login/Register & Profile *************************/
+/**
+ * LOGIN GET request
+ */
+app.get("/login", authenticateTokenFromCookie, (req, res) => {
+  res.render("account-auth", {
+    title: "Login",
+    user: req.user,
+    isRegister: false,
+  });
+});
+app.get("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.redirect("/");
+});
+
+app.post("/login", async (req, res) => {
+  try{
+    const { id, userName, email, password } = req.body;
+    // create repository
+    const userRepository = AppDataSource.getRepository(User);
+    // query the database to find a user based on the inputted email
+    const user = await userRepository.findOneBy({ email: email });
+    // check if that user exists and if the password matches
+    if (user && password === user.password) {
+      // If password matches, log in and redirect
+      // create JWT
+      const token = jwt.sign(
+        { id: user.id, userName: user.userName },
+        SECRET_KEY,
+        { expiresIn: "1h" },
+      );
+      // Set token in HttpOnly cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false, // set true if using HTTPS
+        maxAge: 60 * 60 * 1000, // 1 hour
+      });
+      res.redirect("/");
+    } else {
+      return res.render("account-auth", {
+        title: "Login",
+        user: req.user,
+        isRegister: false,
+        errors: [{ msg: "Email or password is incorrect" }],
+        oldInput: req.body,
+      });
+    }
+  } catch(err){
+    return res.render("account-auth", {
+        title: "Login",
+        user: {},
+        isRegister: false,
+        errors: [{ msg: "Error logging in, please try again." }],
+        oldInput: req.body,
+      });
+  }
+  
+});
+
 app.get("/register", authenticateTokenFromCookie, (req, res) => {
   res.render(
     "account-auth", // handlebar template with both register and login forms
@@ -421,7 +436,7 @@ app.get("/register", authenticateTokenFromCookie, (req, res) => {
 });
 
 app.post(
-  "/register", // need to test trim
+  "/register",
   [
     body("userName")
       .trim(" ")
@@ -438,12 +453,16 @@ app.post(
       .normalizeEmail() // sanitize email address **
       // custom validation to check if the email trying to be registered already exists within our database
       .custom(async (value) => {
-        const userRepository = AppDataSource.getRepository(User);
-        const user = await userRepository.findOneBy({ email: value });
-        if (user) {
-          throw new Error("This email is already registered.");
+        try{
+          const userRepository = AppDataSource.getRepository(User);
+          const user = await userRepository.findOneBy({ email: value });
+          if (user) {
+            throw new Error("This email is already registered.");
+          }
+          return true;
+        } catch(err){
+          throw new Error("Error registering this account, please try again.")
         }
-        return true;
       }),
     body("password")
       .isStrongPassword({
@@ -469,6 +488,7 @@ app.post(
       .withMessage("Please enter a valid phone number")
   ],
   async (req, res) => {
+    try{
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.render("account-auth", {
@@ -479,23 +499,34 @@ app.post(
         oldInput: req.body,
       });
     }
-    const userRepository = AppDataSource.getRepository(User);
-    const user = userRepository.create(req.body);
-    const result = await userRepository.save(user);
+      // Create new row in the users table with the data taken from the register form
+      const userRepository = AppDataSource.getRepository(User);
+      const user = userRepository.create(req.body);
+      const result = await userRepository.save(user);
+      // Log the new user in automatically and create the jwt
+      const token = jwt.sign(
+        { id: result.id, userName: result.userName },
+        SECRET_KEY,
+        { expiresIn: "1h" },
+      );
 
-    const token = jwt.sign(
-      { id: result.id, userName: result.userName },
-      SECRET_KEY,
-      { expiresIn: "1h" },
-    );
-
-    // Set token in HttpOnly cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // set true if using HTTPS
-      maxAge: 60 * 60 * 1000, // 1 hour
-    });
-    res.redirect("/");
+      // Set token in HttpOnly cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false, // set true if using HTTPS
+        maxAge: 60 * 60 * 1000, // 1 hour
+      });
+      res.redirect("/");
+    } catch(err){
+      return res.render("account-auth", {
+        title: "Register",
+        user: {},
+        isRegister: true,
+        errors: [{ msg: "Error registering, please try again." }],
+        oldInput: req.body,
+      });
+    }
+    
   },
 );
 
@@ -503,36 +534,46 @@ app.get("/profile", authenticateTokenFromCookie, async (req, res) => {
   // Current User data
   const userRepository = AppDataSource.getRepository(User);
   const currentUser = await userRepository.findOne({where: {id: req.user.id}})
-
-  //const orderRepository = AppDataSource.getRepository(Order);
-  // Cascaded relations to be able to access the current users orders and items within those orders
-  // const result = await userRepository.findOne({
-  //   where: { id: req.user.id },
-  //   relations: {
-  //     orders: {
-  //       orderItems: {
-  //         item: true,
-  //       },
-  //     },
-  //   },
-  // });
-  // if (!result) {
-  //   // This case should not occur because a valid token must be present to access the /profile route
-  //   return res.json({ success: false, message: "User does not exist" });
-  // }
-
-  //console.log(result.orders);
+  // If phone number isn't stored in ###-###-#### format, then format it
+  // express validation ensures valid phone number already but can be entered in the format
+    // ########## or ###-###-####
+    // So check if it is entered in the proper format which would result in a length of 12
+  let formattedPhoneNumber = currentUser.phoneNumber;
+  if(formattedPhoneNumber.length !== 12){
+    formattedPhoneNumber = "";
+    for(let i = 0; i < 10; i++){
+      if(i === 3 || i === 6){
+        formattedPhoneNumber += "-";
+      }
+      formattedPhoneNumber += currentUser.phoneNumber[i];
+    }
+  }
 
   res.render("profile", {
     title: "Profile",
-    user: req.user,
+    user: req.user.userName,
     email: currentUser.email,
-    phone: currentUser.phoneNumber,
+    phone: formattedPhoneNumber,
     birthDate: currentUser.birthDate
-    //orders: result.orders,
   });
 });
 
+app.get("/api/orders", authenticateTokenFromCookie, async (req, res) => {
+  // api route to get the order history from the orders table
+  try{
+    const orderRepository = AppDataSource.getRepository(Order);
+    const ordersResult = await orderRepository.find({
+      where: {
+        userId: req.user.id
+      }
+    });
+    return res.json(ordersResult);
+  } catch(err){
+    console.error("Orders query failed: ", err);
+    return res.status(404).json({error: "Database unavailable"});
+  }
+})
+/**************************END Story 1 Login/Register & Profile *************************/
 
 //#region Sucha Story here
 

@@ -1,7 +1,7 @@
 <h1>{{title}}</h1>
 
 <div class="card">
-    <h2>{{user.userName}}</h2>
+    <h2>{{user}}</h2>
     <h2>Phone #: {{phone}}</h2>
     <h2>Email: {{email}}</h2>
     <h2>Birthday: {{birthDate}}</h2>
@@ -9,15 +9,67 @@
 
 <div>
     <h2>Order History:</h2>
-    {{!-- {{#each orders}}
-    <div class="card">
-        <h3>{{this.id}}.</h3> 
-        {{#each this.orderItems}}
-            <p>Item: {{this.item.itemName}} Qty: {{this.quantity}} </p>
-        {{/each}}
-        <p>Total: ${{this.total}}</p>
-        <p>Date: {{this.date}}</p>
-    </div>
-    {{/each}} --}}
+    <div id="orderHistory"></div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function() {
+        try{
+            // JS fetch the orders api
+            const res = await fetch("/api/orders")
+            // Check if the fetch was successful
+            if(!res.ok){
+                throw new Error(await res.status);
+            }
+
+            const data = await res.json();
+            // Get the div that will contain the order history data
+            const orderHistory = document.getElementById("orderHistory");
+            // If there aren't any previous orders display text to communicate that
+            if(data.length === 0){
+                const card = document.createElement("div");
+                card.className = "card";
+                const noHistory = document.createElement("p");
+                noHistory.textContent = "No previous orders.";
+                card.appendChild(noHistory);
+                orderHistory.appendChild(card);
+            }
+
+            // Create cards for each unique order
+            data.forEach((order) => {
+                const card = document.createElement("div");
+                card.className = "card";
+                const orderDate = document.createElement("p");
+                const caterDate = document.createElement("p");
+                const specialInstr = document.createElement("p");
+                const total = document.createElement("p");
+
+                                                            // substring to remove time, only interested in the date 
+                orderDate.textContent = "Order Date: " + order.orderDate.substring(0,10);
+                caterDate.textContent = "Cater Date: " + order.caterDate.substring(0,10);
+                specialInstr.textContent = "Special instructions: " + (order.specialInstructions === null ? "None" : order.specialInstructions);
+                total.textContent = "Total: $" + order.total;
+
+                card.appendChild(orderDate);
+                card.appendChild(caterDate);
+                card.appendChild(specialInstr);
+                card.appendChild(total);
+                orderHistory.appendChild(card);
+            });
+
+
+        } catch (error){
+            // Display error message in the order history card
+            const orderHistory = document.getElementById("orderHistory");
+            const errorMessage = document.createElement("p");
+            const card = document.createElement("div");
+            card.className = "card";
+            errorMessage.className = "error";
+            errorMessage.textContent = "Error getting order history";
+            card.appendChild(errorMessage);
+            orderHistory.appendChild(card);
+            console.error(error);
+        }
+    })
+</script>
 
