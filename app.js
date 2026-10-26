@@ -834,7 +834,7 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
           {
             menuId: menuItem.id,
             title: menuItem.title,
-            itemPrice: price,
+            itemPrice: price.toFixed(2),
             quantity: quantity,
             overallPrice: overallPrice.toFixed(2)
           }
