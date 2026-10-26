@@ -12,6 +12,8 @@ const { User } = require("./entity/User");
 const { Showcase } = require("./entity/Showcase");
 const { Review } = require("./entity/Review");
 const { Menu } = require("./entity/Menu");
+const { Order } = require("./entity/Order");
+const { OrderItem } = require("./entity/OrderItem");
 const {
   users,
   showcasePhotos,
@@ -19,6 +21,7 @@ const {
   storeInformation,
   menuItems, //pls change to actual menu list in seed
 } = require("./fixtures/data-seed");
+const req = require("express/lib/request");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
@@ -702,13 +705,14 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
 //------------Story (i forgot what num, will edit lol) - Custom Orders - Roseanne Atchivara -------------
 /*********** CUSTOM ORDERS ************
  * URL: http://localhost:8000/custom-orders
- * 
 ************************************/
 
-
-
-app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
-
+/**
+ * Categorizes the menu items from the repository
+ * @returns an array of objects containing the category and an array of items in that cateogry
+ */
+async function loadCategorizedMenu() {
+  //Fetch Menu from DB with sort
   const sortedMenu = await AppDataSource.getRepository(Menu).find(
     {
       order: {
@@ -719,10 +723,9 @@ app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
     }
   )
 
-  //Create an array of all the available categories in the menu repository
+  //Create an array of all the available categories in the Menu
   let categories = [];
   sortedMenu.forEach(item => {
-
     //if the category of the item doesn't exist in the categories array yet, add to categories
     if (!categories.includes(item.category))
     {
@@ -730,9 +733,9 @@ app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
     }
   });
 
+  //For each categories, create an object containing the category name and 
+  // a filtered (by category) array of items
   let categorizedMenu = [];
-  //for each categories, create an object containing the category name and a filtered 
-  // list of items in that category
   categories.forEach(categoryName => {
     const items = sortedMenu.filter((item) => item.category === categoryName);
     categorizedMenu.push(
@@ -742,15 +745,134 @@ app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
       }
     )
   });
+  return categorizedMenu;
+}
 
+/**
+ * Grabs tomorrow's date and formats it to use for 
+ * HTML datetime-local's input's min="" property
+ * Catering Order is set up so that the bakery has 24hrs in advance to prep the order!
+ * @returns string for input min="" property
+ */
+function tomorrowDate()
+{
+  //Sets date to tomorrow's date
+  const tomorrowsDate = new Date();
+  tomorrowsDate.setDate( tomorrowsDate.getDate() + 1);
 
-  //Render page
-  res.render('custom-orders', {
-    title: 'CUSTOM ORDERS',
-    user: req.user,
-    menu_list: categorizedMenu
-  })
+  //Formatter
+  const cateringDateFormatter = new Intl.DateTimeFormat("en-CA",
+    {
+      timeZone: "America/Regina",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit",
+      hourCycle: "h23"
+    }
+  );
+  return cateringDateFormatter.format(tomorrowsDate).replace(", ", "T");
+}
+
+//Fetch Menu and Store Info from DB
+app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
+  try {
+    const categorizedMenu = await loadCategorizedMenu();
+    //Using Garrett's function!
+    const storeInfo = await getContactStoreInformation();
+
+    //Render page
+    res.render('custom-orders', {
+      title: 'Place your Catering Order',
+      user: req.user,
+      menu_list: categorizedMenu,
+      caterDate: tomorrowDate(),
+      caterMinDate: tomorrowDate(),
+      storeInfo: storeInfo.locationDetails
+    })
+  } catch (err) {
+    console.error("Error loading Custom Order Page:", err);
+
+    return res.status(500).render("custom-orders", {
+      title: "Error: Custom Order",
+      user: req.user,
+      menu_list: [],
+      error: "Unable to load page"
+    });
+  }
 });
+
+app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser, 
+  [
+    //VALIDATION
+    //Cater date must not be empty, must be a valid date, and must be 24 hours in advance
+    body("caterDate")
+    .notEmpty().withMessage("Please enter a date.").bail()
+    .isISO8601().withMessage("Please enter a valid date.").bail()
+    .custom((val) => {
+      return val >= tomorrowDate()
+    }).withMessage("Please allow 24 hours notice to prepare your order."),
+
+    // Order Quantities must be between 0 and 999
+    body("quantities.*")
+    .isInt( 
+      {
+        min: 0,
+        max: 999
+      }).withMessage("Item Quantity must be between 0 to 999"),
+
+    // At least one of the quantities must be > 0
+    body("quantities")
+    .custom((val) => {
+      const quantities = Object.values(val)
+      .some((quantity) => {
+        return Number(quantity) > 0
+      });
+      return quantities;
+    }).withMessage("Must have at least 1 item that has more than 0 quantity."),
+
+    // Special Instructions must be <= 255 and is optional
+    body("specialInstructions")
+    .optional()
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage("Special Instructions must be 255 characters max.")
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      try {
+        const categorizedMenu = await loadCategorizedMenu();
+        //Using Garrett's function!
+        const storeInfo = await getContactStoreInformation();
+
+        //If validation fails (errors)
+        return res.status(400).render('custom-orders', {
+          title: 'Place your Catering Order',
+          user: req.user,
+          menu_list: categorizedMenu,
+          caterDate: req.body.caterDate,
+          caterMinDate: tomorrowDate(),
+          storeInfo: storeInfo.locationDetails,
+          errors: errors.array(),
+          input: req.body
+        });
+      } catch (err) {
+          //If something goes wrong with loading (error)
+          console.error("Error loading Custom Order Page:", err);
+          
+          return res.status(500).render("custom-orders", {
+            title: "Error: Custom Order",
+            user: req.user,
+            menu_list: [],
+            error: "Unable to load page"
+          });
+        }
+    }
+  }
+);
+
+//------------End of Story (i forgot what num, will edit lol) - Roseanne Atchivara -------------
+
 
 /**
  * Only logged in users can upload pictures.
