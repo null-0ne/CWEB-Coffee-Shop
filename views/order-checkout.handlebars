@@ -1,0 +1,51 @@
+<h1>{{title}}</h1>
+
+<p class="success">Thank you! Order #{{orderId}} has been placed.</p>
+
+<div class="card">
+    <h2>Order Summary</h2>
+    <table class="order-table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Item Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each orderItems}}
+                <tr>
+                    <td>{{this.title}}</td>
+                    <td>{{this.quantity}}</td>
+                    <td>${{this.itemPrice}}</td>
+                    <td>${{this.overallPrice}}</td>
+                </tr>
+            {{/each}}
+            <tr><td colspan="4"><hr></td></tr>
+            <tr>
+                <td colspan="3"><strong>Total:</strong></td>
+                <td>${{total}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="inline-card">
+    <div class="card half">
+        <h2>Pickup Details</h2>
+        <p>{{caterDate}}</p>
+        <span class="error">Local Pickup Only</span>
+    </div>
+    {{#if specialInstructions}}
+        <div class="card half">
+            <h2>Notes:</h2>
+            <p>{{specialInstructions}}</p>
+        </div>
+    {{/if}}
+</div>
+
+<div class="card">
+    <strong><a href="/custom-orders">Place another order</a></strong>
+</div>
+

@@ -702,7 +702,7 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 });
 
-//------------Story (i forgot what num, will edit lol) - Custom Orders - Roseanne Atchivara -------------
+//------------Story 3 - Custom Orders - Roseanne Atchivara -------------
 /*********** CUSTOM ORDERS ************
  * URL: http://localhost:8000/custom-orders
 ************************************/
@@ -802,7 +802,7 @@ app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
 
 app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser, 
   [
-    //VALIDATION
+    //Validation Rules
     //Cater date must not be empty, must be a valid date, and must be 24 hours in advance
     body("caterDate")
     .notEmpty().withMessage("Please enter a date.").bail()
@@ -839,6 +839,7 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
   async (req, res) => {
     const errors = validationResult(req);
 
+    //Validation
     if (!errors.isEmpty()) {
       try {
         const categorizedMenu = await loadCategorizedMenu();
@@ -868,10 +869,99 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
           });
         }
     }
+
+    try {
+      const menu = AppDataSource.getRepository(Menu);
+      const quantities = req.body.quantities;
+
+      let totalPrice = 0;
+      const orderItems = [];
+
+      // key is the item, value is the quantity
+      for (const item in quantities) {
+        const quantity = Number(quantities[item]);
+        if (quantity === 0) {
+          // ignores all 0s
+          continue;
+        }
+
+        //Added id in quantities' key to avoid losing key
+        //it creates arrays instead of objects if the keys are just numbers
+        const menuItem = await menu.findOneBy( { id: Number(item.replace("id", ""))} );
+        if (!menuItem) {
+          //just in case
+          continue;
+        }
+
+        // Calculate item's price x quantity and add to total
+        const price = Number(menuItem.price);
+        const overallPrice = price * quantity;
+        totalPrice += overallPrice;
+
+        //Add this item's information in orderItems
+        orderItems.push(
+          {
+            menuId: menuItem.id,
+            title: menuItem.title,
+            itemPrice: price,
+            quantity: quantity,
+            overallPrice: overallPrice.toFixed(2)
+          }
+        )
+      }
+
+      //Send order details to Order
+      const order = AppDataSource.getRepository(Order);
+      const newOrder = order.create(
+        {
+          userId: req.user.id,
+          caterDate: req.body.caterDate,
+          specialInstructions: req.body.specialInstructions,
+          total: totalPrice
+        }
+      );
+      await order.save(newOrder);
+
+      //Send order item details to OrderItem
+      const orderItem = AppDataSource.getRepository(OrderItem);
+
+      for (const item of orderItems) {
+          const newOrderItem = orderItem.create({
+            orderId: newOrder.id,
+            menuId: item.menuId,
+            quantity: item.quantity,
+            unitPrice: item.itemPrice
+          }
+        );
+
+        await orderItem.save(newOrderItem);
+      }
+
+      //Using a different template for checkout
+      return res.render('order-checkout', {
+        title: "Order Placed",
+        user: req.user,
+        orderId: newOrder.id,
+        orderItems: orderItems,
+        total: totalPrice.toFixed(2),
+        caterDate: req.body.caterDate.replace("T", " at "),
+        specialInstructions: req.body.specialInstructions
+      })
+    } catch (err) {
+      //If something goes wrong with loading (error)
+      console.error("Error placing order:", err);
+      
+      return res.status(500).render("custom-order", {
+        title: "Error: Custom Order",
+        user: req.user,
+        menu_list: [],
+        error: "We couldn't place your order. Please try again."
+      });
+    }
   }
 );
 
-//------------End of Story (i forgot what num, will edit lol) - Roseanne Atchivara -------------
+//------------End of Story 3 - Roseanne Atchivara -------------
 
 
 /**
