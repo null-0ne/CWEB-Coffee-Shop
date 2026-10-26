@@ -1165,10 +1165,6 @@ app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
   const { search, filter } = req.query;
   let filteredMenuItems = menuItems;
 
-  filteredMenuItems.map((item) => {
-    console.log(item);
-  });
-
   if (
     search
   ) //if search isnt empty, filter the query and return the new menu items
@@ -1197,6 +1193,7 @@ app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
     success: "",
     error: "",
     user: req.user,
+    title: "Menu"
   });
 });
 
@@ -1211,15 +1208,11 @@ app.post(
     body("itemName")
       .trim()
       .isLength({ min: 2 })
-      .withMessage("Item title must be at least 2 characters")
-      .isAlpha()
-      .withMessage("Title cannot be a number"),
+      .withMessage("Item title must be at least 2 characters"),
     body("itemType")
       .trim()
       .isLength({ min: 2 })
-      .withMessage("Item category must be at least 2 characters")
-      .isAlpha()
-      .withMessage("Category cannot be a number"),
+      .withMessage("Item category must be at least 2 characters"),
     body("itemPrice")
       .trim()
       .isLength({ min: 1 })
@@ -1242,6 +1235,7 @@ app.post(
         success: false,
         errors: errors.array(),
         user: req.user,
+        title: "Menu"
       });
     }
 
@@ -1254,7 +1248,7 @@ app.post(
 
     // Save this item to the database
     await menuRepository.save(newMenuItem);
-    console.log("USER: " + req.user);
+   
 
     // Render a third div, displaying the newly updated item
     res.render("menu", {
@@ -1266,6 +1260,7 @@ app.post(
         category: newMenuItem.category,
         price: "$" + newMenuItem.price,
       },
+      title: "Menu"
     });
   },
 );
