@@ -20,7 +20,7 @@ module.exports.OrderItem = new EntitySchema({
         },
         unitPrice: {
             type: "decimal",
-            precision: 5,
+            precision: 10,
             scale: 2
         }
 

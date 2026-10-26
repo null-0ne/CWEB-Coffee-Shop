@@ -27,7 +27,7 @@ module.exports.Order = new EntitySchema({
         },
         total: {
             type: "decimal",
-            precision: 5,
+            precision: 10,
             scale: 2
         }
 

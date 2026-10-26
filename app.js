@@ -629,78 +629,6 @@ app.post(
 
 //#endregion
 
-//------------Story 4 - Showcase Gallery - Multer - Kevin Obillo -------------
-
-//store uploaded files on disk
-const storage = multer.diskStorage({
-  destination: "public/images/",
-  filename: (req, file, callBack) =>
-    callBack(null, file.originalname.toLowerCase()),
-});
-
-//File upload handler:
-//only takes an image/ file
-//if not an image file, it'll reject the file and will show an error
-const showcaseUpload = multer({
-  storage: storage,
-  //limited of 2,097,152 or 2MB
-  limits: { fileSize: 2 * 1024 * 1024 },
-  fileFilter: (req, file, callBack) => {
-    //file mime type -> image only
-    if (file.mimetype.startsWith("image/")) {
-      callBack(null, true);
-    } else {
-      //reject the image if invalid, on the post -> it'll just show "Please upload a valid image file"
-      callBack(null, false);
-    }
-  },
-});
-
-//render showcase page
-//show all showcase photos from the database, with the optional search and sorting.
-// story 1 for authentication has this -- authenticateTokenFromCookie function (story 1)
-app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
-  //for sorting/filter
-  const { search, sort } = req.query;
-
-  //need to get hte photos from the showcase table
-  const photos = await AppDataSource.getRepository(Showcase).find({
-    relations: { user: true }, // this is going to load the uploader from user table
-  });
-
-  let filteredPhotos = photos;
-
-  //if the user typed something in search, only keep photos that match
-  if (search && search.trim().length) {
-    const searchLower = search.toLowerCase();
-    filteredPhotos = photos.filter(
-      (photo) =>
-        // if i want to search using the title or description?
-        photo.title.toLowerCase().includes(searchLower) ||
-        (photo.description &&
-          photo.description.toLowerCase().includes(searchLower)), //check if the description exist first before searching it
-    );
-  }
-
-  //sort the photos based on what the user picked
-  filteredPhotos.sort((a, b) => {
-    if (sort === "title") {
-      //sort in alphabetical order by the title
-      return a.title.localeCompare(b.title);
-    } else {
-      //newest uploads first
-      return new Date(b.uploadDate) - new Date(a.uploadDate);
-    }
-  });
-
-  res.render("showcase", {
-    hasPhotos: photos.length > 0, // same logic we used for example lo2. using this below the upload button
-    title: "Showcase Gallery",
-    user: req.user, // same name Rylan uses
-    photos: filteredPhotos,
-    oldInput: req.query, // keeps the search box + sort dropdown filled in
-  });
-});
 
 //------------Story 3 - Custom Orders - Roseanne Atchivara -------------
 /*********** CUSTOM ORDERS ************
@@ -953,7 +881,7 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
       //If something goes wrong with loading (error)
       console.error("Error placing order:", err);
       
-      return res.status(500).render("custom-order", {
+      return res.status(500).render("custom-orders", {
         title: "Error: Custom Order",
         user: req.user,
         menu_list: [],
@@ -964,6 +892,79 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
 );
 
 //------------End of Story 3 - Roseanne Atchivara -------------
+
+//------------Story 4 - Showcase Gallery - Multer - Kevin Obillo -------------
+
+//store uploaded files on disk
+const storage = multer.diskStorage({
+  destination: "public/images/",
+  filename: (req, file, callBack) =>
+    callBack(null, file.originalname.toLowerCase()),
+});
+
+//File upload handler:
+//only takes an image/ file
+//if not an image file, it'll reject the file and will show an error
+const showcaseUpload = multer({
+  storage: storage,
+  //limited of 2,097,152 or 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, callBack) => {
+    //file mime type -> image only
+    if (file.mimetype.startsWith("image/")) {
+      callBack(null, true);
+    } else {
+      //reject the image if invalid, on the post -> it'll just show "Please upload a valid image file"
+      callBack(null, false);
+    }
+  },
+});
+
+//render showcase page
+//show all showcase photos from the database, with the optional search and sorting.
+// story 1 for authentication has this -- authenticateTokenFromCookie function (story 1)
+app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
+  //for sorting/filter
+  const { search, sort } = req.query;
+
+  //need to get hte photos from the showcase table
+  const photos = await AppDataSource.getRepository(Showcase).find({
+    relations: { user: true }, // this is going to load the uploader from user table
+  });
+
+  let filteredPhotos = photos;
+
+  //if the user typed something in search, only keep photos that match
+  if (search && search.trim().length) {
+    const searchLower = search.toLowerCase();
+    filteredPhotos = photos.filter(
+      (photo) =>
+        // if i want to search using the title or description?
+        photo.title.toLowerCase().includes(searchLower) ||
+        (photo.description &&
+          photo.description.toLowerCase().includes(searchLower)), //check if the description exist first before searching it
+    );
+  }
+
+  //sort the photos based on what the user picked
+  filteredPhotos.sort((a, b) => {
+    if (sort === "title") {
+      //sort in alphabetical order by the title
+      return a.title.localeCompare(b.title);
+    } else {
+      //newest uploads first
+      return new Date(b.uploadDate) - new Date(a.uploadDate);
+    }
+  });
+
+  res.render("showcase", {
+    hasPhotos: photos.length > 0, // same logic we used for example lo2. using this below the upload button
+    title: "Showcase Gallery",
+    user: req.user, // same name Rylan uses
+    photos: filteredPhotos,
+    oldInput: req.query, // keeps the search box + sort dropdown filled in
+  });
+});
 
 
 /**
