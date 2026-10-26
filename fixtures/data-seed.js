@@ -349,6 +349,7 @@ module.exports.showcasePhotos = [
     title: "Iced Americano",
     description:
       "Espresso shots topped with cold water for a light layer of crema, served over ice.",
+      uploadDate: new Date("2026-10-12T08:30:00"),
   },
   {
     userName: "Janegirl",
@@ -356,6 +357,7 @@ module.exports.showcasePhotos = [
     title: "Iced Matcha Latte",
     description:
       "Smooth and creamy green tea latte made with our matcha and milk, served over ice.",
+      uploadDate: new Date("2026-10-15T14:45:00"),
   },
   {
     userName: "Milly",
@@ -363,6 +365,7 @@ module.exports.showcasePhotos = [
     title: "Lemon Loaf",
     description:
       "Citrusy, buttery, moist lemon pound cake topped with a sweet icing.",
+      uploadDate: new Date("2026-10-20T16:10:00"),
   },
   {
     userName: "Jo",
@@ -370,6 +373,7 @@ module.exports.showcasePhotos = [
     title: "Pecan Pie",
     description:
       "Buttery crust with a caramelized filling and toasted pecans. Crunchy and sweet.",
+      uploadDate: new Date("2026-10-10T09:15:00"),
   },
   {
     userName: "Jelly",
@@ -377,6 +381,7 @@ module.exports.showcasePhotos = [
     title: "Apple Crumble Pie",
     description:
       "Tender spiced apples baked under a golden, buttery crumble topping.",
+      uploadDate: new Date("2026-10-18T13:40:00")
   },
   {
     userName: "Carls",
@@ -384,6 +389,7 @@ module.exports.showcasePhotos = [
     title: "Pumpkin Pie",
     description:
       "Creamy pumpkin filling with warm fall spices, topped with whipped cream.",
+      uploadDate: new Date("2026-10-08T11:20:00"),
   },
   {
     userName: "Bronny",
@@ -391,6 +397,7 @@ module.exports.showcasePhotos = [
     title: "Cheese Danish",
     description:
       "Flaky, buttery pastry with a soft, sweet cream cheese centre.",
+      uploadDate: new Date("2026-10-20T16:10:00"),
   },
   {
     userName: "JamJam",
@@ -398,18 +405,21 @@ module.exports.showcasePhotos = [
     title: "Ham and Swiss Croissant",
     description:
       "Smoked ham and melted Swiss cheese in a buttery, flaky croissant.",
+      uploadDate: new Date("2026-10-23T17:30:00"),
   },
   {
     userName: "Trav",
     fileName: "seed-cinnamon.jpg",
     title: "Cinnamon Roll",
     description: null, // optional - shows the gallery works without a description
+    uploadDate: new Date("2026-10-07T14:15:00"),
   },
   {
     userName: "Walt",
     fileName: "seed-coffee.jpg",
     title: "Iced Latte",
     description: "Rich espresso combined with milk and served over ice.",
+    uploadDate: new Date("2026-10-02T12:05:00"),
   },
   {
     userName: "Johnnyboy",
@@ -424,12 +434,14 @@ module.exports.showcasePhotos = [
     title: "Salted Caramel Cream Cold Brew",
     description:
       "Smooth cold brew with a touch of caramel, topped with a salted cold foam.",
+         uploadDate: new Date("2026-10-14T15:25:00"),
   },
   {
     userName: "Tommyboy",
     fileName: "seed-pumpkin-cold-brew.jpg",
     title: "Pumpkin Cream Cold Brew",
     description: "Cold brew topped with pumpkin cream cold foam.",
+    uploadDate: new Date("2026-10-22T10:35:00"),
   },
 ];
 

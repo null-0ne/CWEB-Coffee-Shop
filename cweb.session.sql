@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS `Showcase`;
 DROP TABLE IF EXISTS `submissions`;
 DROP TABLE IF EXISTS `store_information`;
 DROP TABLE IF EXISTS `order_items`;
+DROP TABLE IF EXISTS `reviews`;
 DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `menu`;
 DROP TABLE IF EXISTS `users`;
