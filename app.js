@@ -1003,6 +1003,64 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   });
 });
 
+//app.js from 3.1, 3.2, 3.3, 3.4
+//Notes taken from 3.2
+//get one user by id -> SHOWCASE TABLE NOT USER TABLE!
+//the route parameter is treated as id value and looked up in the database.
+//:id is the parameter so awaitinfor it must have the exact name
+//since this is "id"
+//getting the id only -> returns a the json file
+app.get("/showcase/:id", async (req, res) => {
+  // find the photo with this id, plus who uploaded it
+  const photo = await AppDataSource.getRepository(Showcase).findOne({
+    where: { id: parseInt(req.params.id) }, // params are strings, the id column is a number
+    relations: { user: true }, // this way i can grab the info from user table ex. user.userName output: JohnnyBoy || user.id output: 1
+  });
+
+  // no photo with that id -> 404 error 
+  if (!photo) {
+    return res.status(404).json({ error: "Photo not found" });
+  }
+
+  //send the photo details and uploader information back to the client
+  //res.json() sends a response json to the client
+  res.json({
+    id: photo.id,
+    title: photo.title,
+    description: photo.description,
+    fileName: photo.fileName,
+    uploadDate: photo.uploadDate,
+    uploadedBy: photo.user.userName,
+    uploadedById: photo.user.id,
+  });
+});
+
+//getting all the of the "data" in a json
+//this will return all of the current data inside the showcase table in .json()
+//i cant use the /showcase/ route because its already a route for my HTML (ui)
+app.get("/api/showcase/", async (req, res) => {
+  // get all photos plus who uploaded each one, newest first
+  const photos = await AppDataSource.getRepository(Showcase).find({
+    relations: { user: true },
+  });
+
+  //this is where im storing the json for each upload 
+  const result = [];
+  for (const photo of photos) {
+    result.push({
+      id: photo.id,
+      title: photo.title,
+      description: photo.description,
+      fileName: photo.fileName,
+      uploadDate: photo.uploadDate,
+      uploadedBy: photo.user.userName,
+      uploadedById: photo.user.id,
+    });
+  }
+
+  res.json(result); // send the whole array as JSON
+});
+
 /**
  * Only logged in users can upload pictures.
  * authenticateTokenFromCookie -> this will set the req.user
