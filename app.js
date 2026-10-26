@@ -752,13 +752,15 @@ async function loadCategorizedMenu() {
  * Grabs tomorrow's date and formats it to use for 
  * HTML datetime-local's input's min="" property
  * Catering Order is set up so that the bakery has 24hrs in advance to prep the order!
+ * @param {*} addMinutes extra minutes for default value in datetime-local min 
  * @returns string for input min="" property
  */
-function tomorrowDate()
+function tomorrowDate(addMinutes = 0)
 {
   //Sets date to tomorrow's date
   const tomorrowsDate = new Date();
   tomorrowsDate.setDate( tomorrowsDate.getDate() + 1);
+  tomorrowsDate.setTime( tomorrowsDate.getTime() + addMinutes * 60 * 1000);
 
   //Formatter
   const cateringDateFormatter = new Intl.DateTimeFormat("en-CA",
@@ -784,7 +786,7 @@ app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
       title: 'Place your Catering Order',
       user: req.user,
       menu_list: categorizedMenu,
-      caterDate: tomorrowDate(),
+      caterDate: tomorrowDate(5),
       caterMinDate: tomorrowDate(),
       storeInfo: storeInfo.locationDetails
     })
