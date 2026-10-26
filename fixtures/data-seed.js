@@ -1,3 +1,80 @@
+//Samuel - Menu
+module.exports.menu = [
+    {
+        title: "black coffee hot",
+        category: "drink",
+        userId: "1",
+        price: 3.50,
+    },
+     {
+        title: "latte",
+        category: "drink",
+        userId: "1",
+        price: 4.50,
+    },
+   {
+        title: "Cappuccino",
+        category: "drink",
+        userId: "2",
+        price: 4.50,
+    },
+     {
+        title: "Chai Tea",
+        category: "drink",
+        userId: "3",
+        price: 4.50,
+    },
+     {
+        title: "Cinnamon Roll",
+        category: "food",
+        userId: "3",
+        price: 5.00,
+    },
+    {
+        title: "Pumpkin Pie",
+        category: "food",
+        userId: "4",
+        price: 6.50,
+    },
+      {
+        title: "Cheese Danish",
+        category: "food",
+        userId: "5",
+        price: 5.50,
+    },
+      {
+        title: "Iced Latte",
+        category: "drink",
+        userId: "6",
+        price: 4.50,
+    },
+      {
+        title: "Iced Coffee",
+        category: "drink",
+        userId: "6",
+        price: 3.50,
+    },
+       {
+        title: "Lemon Loaf",
+        category: "food",
+        userId: "7",
+        price: 5.00,
+    },
+      {
+        title: "Cortado",
+        category: "drink",
+        userId: "3",
+        price: 5.00,
+    },
+      {
+        title: "Iced Matcha Latte",
+        category: "drink",
+        userId: "4",
+        price: 4.75,
+    },
+    
+];
+
 // Garrett
 module.exports.storeInformation = [
   // Contact information

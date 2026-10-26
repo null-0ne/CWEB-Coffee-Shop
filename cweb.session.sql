@@ -8,8 +8,9 @@ DROP TABLE IF EXISTS `showcase`;
 DROP TABLE IF EXISTS `Showcase`;
 DROP TABLE IF EXISTS `submissions`;
 DROP TABLE IF EXISTS `store_information`;
+DROP TABLE IF EXISTS `menu`;
 DROP TABLE IF EXISTS `users`;
-DROP TABLE IF EXISTS `user`;
+
 
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -64,6 +65,27 @@ CREATE TABLE `showcase` (
   
   FOREIGN KEY (userId) REFERENCES `users`(id)
 );
+
+
+
+
+
+--
+-- Table structure for table `Menu`
+--
+
+CREATE TABLE `menu` (
+  `id` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `type` varchar(255) NOT NULL,
+  `userId` int NOT NULL,
+    `price`decimal(10, 2),
+  `uploadDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (userId) REFERENCES `users`(id)
+);
+ 
+
 
 
 

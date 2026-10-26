@@ -12,14 +12,15 @@ const { User } = require("./entity/User");
 const { Showcase } = require("./entity/Showcase");
 const { Review } = require("./entity/Review");
 const { Menu } = require("./entity/Menu");
+const { Menu } = require("./entity/Menu");
 const { Order } = require("./entity/Order");
 const { OrderItem } = require("./entity/OrderItem");
 const {
-  users,
-  showcasePhotos,
-  reviews,
-  storeInformation,
-  menuItems, //pls change to actual menu list in seed
+    users,
+    showcasePhotos,
+    reviews,
+    storeInformation,
+    menu,
 } = require("./fixtures/data-seed");
 const req = require("express/lib/request");
 
@@ -142,15 +143,17 @@ AppDataSource.initialize()
       console.log("Store information seeded.");
     }
   })
-  .then(async () => {
-    const menuRepository = AppDataSource.getRepository(Menu);
-    //Seed menu only when table is empty
-    if ((await menuRepository.count()) === 0) {
-      const menuEntities = menuRepository.create(menuItems); 
-      await menuRepository.save(menuEntities);
-      console.log("Menu Items seeded.");
-    }
-  })
+   .then(async () => {
+        //create menu repository
+        const menuRepository = AppDataSource.getRepository(Menu);
+        if(await menuRepository.count() === 0){ //if table is empty, seed the data in
+        const MenuEntries = menuRepository.create(menu);
+
+        //seed menu entries into menu table
+        await menuRepository.save(MenuEntries);
+        console.log("Menu information seeded");
+        }
+    })
   .catch((err) => console.error(err));
 
 /*********** HOME PAGE ************
@@ -1062,7 +1065,122 @@ app.post(
 
 //-------------------------END OF STORY 4 --------------------------------
 
+// ---------------------------- STORY 2: SAMUEL CYRENNE ---------------------------------------------
+app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
+    const menuRepository = await AppDataSource.getRepository(Menu);
+
+    //grab all items in the menu
+    const menuItems = await menuRepository.find();
+    const { search, filter } = req.query;
+    let filteredMenuItems = menuItems;
+
+     filteredMenuItems.map((item)=>{
+      console.log(item);
+    });
+   
+    if (
+        search
+    ) //if search isnt empty, filter the query and return the new menu items
+    {
+        const menuSearchLower = search.toLowerCase(); //remove case-sensitivity from search results
+        if (filter === "title") {
+            filteredMenuItems = menuItems.filter((item) =>
+                // if searching by item name [title]
+                item.title.toLowerCase().includes(menuSearchLower)
+            );
+        } else if (filter === "category") {
+            filteredMenuItems = menuItems.filter((item) =>
+                // if searching by item category (like drink or food)
+                item.category.toLowerCase().includes(menuSearchLower)
+            );
+        }
+        else if (filter === "price") {
+            filteredMenuItems = menuItems.filter((item) =>
+                // if searching by price
+                item.price.includes(menuSearchLower)
+            );
+        }
+    }
+
+   
+
+   
+
+    
+    res.render("menu", {
+        menuItems: filteredMenuItems,
+        success: "",
+        error: "",
+        user: req.user
+    });
+});
+
+//ADD NEW MENU ITEM
+app.post(
+    "/menu",
+    authenticateTokenFromCookie,
+    authorizeCurrentUser,
+    [
+        //https://express-validator.github.io/docs/api/validation-chain/#standard-validators
+        //middleware - express-validator uses to create the "rules"
+        body("itemName").trim().isLength({ min: 2 }).withMessage("Item title must be at least 2 characters")
+            .isAlpha().withMessage("Title cannot be a number"),
+        body("itemType").trim().isLength({ min: 2 }).withMessage("Item category must be at least 2 characters")
+            .isAlpha().withMessage("Category cannot be a number"),
+        body("itemPrice").trim().isLength({min: 1}).toFloat().
+            isNumeric().withMessage("Item price must be a number")
+    ],
+    async (req, res) => {
+        const validationError = validationResult(req);
+        console.log(validationError);
+
+        const menuRepository = await AppDataSource.getRepository(Menu);
+        const errors = validationResult(req);
+
+       
+        
+        const { itemName, itemType, itemPrice } = req.body; //the three form values
+
+        //if validation error occurs, render the page with the error
+        if  (!errors.isEmpty()) {
+            return res.render("menu", {
+                success: false,
+                errors: errors.array(),
+                 user: req.user,
+
+            });
+        }
+
+       
+        
+
+        const newMenuItem = {
+            title: itemName,
+            category: itemType,
+            userId: req.user.id, 
+            price: itemPrice,
+        };
+
+        // Save this item to the database
+        await menuRepository.save(newMenuItem);
+        console.log("USER: " + req.user);
+
+        // Render a third div, displaying the newly updated item
+        res.render("menu", {
+            success: true,
+            error: null,
+             user: req.user,
+            newItem: {
+                title : newMenuItem.title,
+                category:  newMenuItem.category,
+                price:  "$" + newMenuItem.price
+            },
+           
+        });
+    },
+);
+
 /*********** Start the server *************/
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}`);
 });
