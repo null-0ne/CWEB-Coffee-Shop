@@ -19,7 +19,7 @@ const {
   reviews,
   storeInformation,
   menu,
-  orders
+  orders,
 } = require("./fixtures/data-seed");
 const req = require("express/lib/request");
 
@@ -65,7 +65,7 @@ function authenticateTokenFromCookie(req, res, next) {
   if (!token) {
     //res.status(401).json({ error: 'Missing token' });
     return next();
-  } 
+  }
   jwt.verify(token, SECRET_KEY, (err, user) => {
     if (err) return res.status(403).json({ error: "Invalid token" });
     req.user = user;
@@ -185,61 +185,6 @@ app.get("/", authenticateTokenFromCookie, (req, res) => {
     ],
   });
 });
-
-
-
-//------------Story 6 - Contact & Hours - Garrett Thomson -------------
-
-// Helper function to retrieve the store information for the Contact page.
-async function getContactStoreInformation() {
-  const storeInformationRepo = AppDataSource.getRepository(StoreInformation);
-
-  const storeInformation = await storeInformationRepo.find({
-    order: {
-      displayOrder: "ASC", // Displaying information in ascending order
-    },
-  });
-
-  // Group each db record so each section is displayed
-  return {
-    contactDetails: storeInformation.filter(
-      (item) => item.category === "contact",
-    ),
-    locationDetails: storeInformation.filter(
-      (item) => item.category === "location",
-    ),
-    hours: storeInformation.filter((item) => item.category === "hours"),
-  };
-}
-
-// Display the form and store information
-app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
-  try {
-    const storeData = await getContactStoreInformation();
-
-    return res.render("contact", {
-      title: "Contact Us",
-      user: req.user,
-      input: {},
-      ...storeData,
-    });
-  } catch (err) {
-    console.error("Error fetching store information:", err);
-
-    // Database/server error
-    return res.status(500).render("contact", {
-      title: "Contact Us",
-      user: req.user,
-      input: {},
-      error: "We couldn't load the store information right now.",
-      contactDetails: [],
-      locationDetails: [],
-      hours: [],
-    });
-  }
-});
-
-
 
 //------------Story 6 - Contact & Hours - Garrett Thomson -------------
 
@@ -430,7 +375,7 @@ app.get("/logout", (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  try{
+  try {
     const { id, userName, email, password } = req.body;
     // create repository
     const userRepository = AppDataSource.getRepository(User);
@@ -461,16 +406,15 @@ app.post("/login", async (req, res) => {
         oldInput: req.body,
       });
     }
-  } catch(err){
+  } catch (err) {
     return res.render("account-auth", {
-        title: "Login",
-        user: {},
-        isRegister: false,
-        errors: [{ msg: "Error logging in, please try again." }],
-        oldInput: req.body,
-      });
+      title: "Login",
+      user: {},
+      isRegister: false,
+      errors: [{ msg: "Error logging in, please try again." }],
+      oldInput: req.body,
+    });
   }
-  
 });
 
 app.get("/register", authenticateTokenFromCookie, (req, res) => {
@@ -502,15 +446,15 @@ app.post(
       .normalizeEmail() // sanitize email address **
       // custom validation to check if the email trying to be registered already exists within our database
       .custom(async (value) => {
-        try{
+        try {
           const userRepository = AppDataSource.getRepository(User);
           const user = await userRepository.findOneBy({ email: value });
           if (user) {
             throw new Error("This email is already registered.");
           }
           return true;
-        } catch(err){
-          throw new Error("Error registering this account, please try again.")
+        } catch (err) {
+          throw new Error("Error registering this account, please try again.");
         }
       }),
     body("password")
@@ -529,25 +473,28 @@ app.post(
         return value === req.body.password;
       })
       .withMessage("Passwords must match"),
-      body("birthDate")
+    body("birthDate")
       .isBefore()
-      .withMessage("Birth date must be before todays date: " + new Date().toISOString().split('T')[0]),
-      body("phoneNumber")
-      .isMobilePhone('en-CA')
-      .withMessage("Please enter a valid phone number")
+      .withMessage(
+        "Birth date must be before todays date: " +
+          new Date().toISOString().split("T")[0],
+      ),
+    body("phoneNumber")
+      .isMobilePhone("en-CA")
+      .withMessage("Please enter a valid phone number"),
   ],
   async (req, res) => {
-    try{
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.render("account-auth", {
-        title: "Register",
-        user: req.user,
-        isRegister: true,
-        errors: errors.array(),
-        oldInput: req.body,
-      });
-    }
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.render("account-auth", {
+          title: "Register",
+          user: req.user,
+          isRegister: true,
+          errors: errors.array(),
+          oldInput: req.body,
+        });
+      }
       // Create new row in the users table with the data taken from the register form
       const userRepository = AppDataSource.getRepository(User);
       const user = userRepository.create(req.body);
@@ -566,7 +513,7 @@ app.post(
         maxAge: 60 * 60 * 1000, // 1 hour
       });
       res.redirect("/");
-    } catch(err){
+    } catch (err) {
       return res.render("account-auth", {
         title: "Register",
         user: {},
@@ -575,23 +522,24 @@ app.post(
         oldInput: req.body,
       });
     }
-    
   },
 );
 
 app.get("/profile", authenticateTokenFromCookie, async (req, res) => {
   // Current User data
   const userRepository = AppDataSource.getRepository(User);
-  const currentUser = await userRepository.findOne({where: {id: req.user.id}})
+  const currentUser = await userRepository.findOne({
+    where: { id: req.user.id },
+  });
   // If phone number isn't stored in ###-###-#### format, then format it
   // express validation ensures valid phone number already but can be entered in the format
-    // ########## or ###-###-####
-    // So check if it is entered in the proper format which would result in a length of 12
+  // ########## or ###-###-####
+  // So check if it is entered in the proper format which would result in a length of 12
   let formattedPhoneNumber = currentUser.phoneNumber;
-  if(formattedPhoneNumber.length !== 12){
+  if (formattedPhoneNumber.length !== 12) {
     formattedPhoneNumber = "";
-    for(let i = 0; i < 10; i++){
-      if(i === 3 || i === 6){
+    for (let i = 0; i < 10; i++) {
+      if (i === 3 || i === 6) {
         formattedPhoneNumber += "-";
       }
       formattedPhoneNumber += currentUser.phoneNumber[i];
@@ -603,25 +551,25 @@ app.get("/profile", authenticateTokenFromCookie, async (req, res) => {
     user: req.user.userName,
     email: currentUser.email,
     phone: formattedPhoneNumber,
-    birthDate: currentUser.birthDate
+    birthDate: currentUser.birthDate,
   });
 });
 
 app.get("/api/orders", authenticateTokenFromCookie, async (req, res) => {
   // api route to get the order history from the orders table
-  try{
+  try {
     const orderRepository = AppDataSource.getRepository(Order);
     const ordersResult = await orderRepository.find({
       where: {
-        userId: req.user.id
-      }
+        userId: req.user.id,
+      },
     });
     return res.json(ordersResult);
-  } catch(err){
+  } catch (err) {
     console.error("Orders query failed: ", err);
-    return res.status(404).json({error: "Database unavailable"});
+    return res.status(404).json({ error: "Database unavailable" });
   }
-})
+});
 /**************************END Story 1 Login/Register & Profile *************************/
 
 //#region Sucha Story here
