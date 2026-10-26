@@ -5,7 +5,6 @@ CREATE DATABASE IF NOT EXISTS `cweb`;
 USE `cweb`;
 
 DROP TABLE IF EXISTS `showcase`;
-DROP TABLE IF EXISTS `Showcase`;
 DROP TABLE IF EXISTS `submissions`;
 DROP TABLE IF EXISTS `store_information`;
 DROP TABLE IF EXISTS `order_items`;

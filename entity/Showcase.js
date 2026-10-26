@@ -30,14 +30,4 @@ module.exports.Showcase = new EntitySchema({
       nullable: true,
     },
   },
-
-  //https://typeorm.io/docs/guides/usage-with-javascript/
-  relations: {
-    //so ... many photos -> one user (uploader)
-    user: {
-      target: "User",
-      type: "many-to-one",
-      joinColumn: { name: "userId" },
-    },
-  },
 });

@@ -931,6 +931,20 @@ app.post(
 //------------End of Story 3 - Roseanne Atchivara -------------
 
 //------------Story 4 - Showcase Gallery - Multer - Kevin Obillo -------------
+//get all the photos from the showcase table, and then add the uploaders userName to each one
+async function getPhotoswUploader()
+ {
+  const photos = await AppDataSource.getRepository(Showcase).find();
+  const users = await AppDataSource.getRepository(User).find();
+
+  for(const photo of photos)
+  {
+    const uploader = users.find((user) => user.id === photo.userId);
+    photo.uploaderName = uploader.userName;
+  }
+  return photos;
+}
+
 
 //store uploaded files on disk
 const storage = multer.diskStorage({
@@ -964,11 +978,8 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
   //for sorting/filter
   const { search, sort } = req.query;
 
-  //need to get hte photos from the showcase table
-  const photos = await AppDataSource.getRepository(Showcase).find({
-    relations: { user: true }, // this is going to load the uploader from user table
-  });
-
+  const photos = await getPhotoswUploader(); // will use the async function instead, it'll grab the whole properties including the uploaders userName from the user table
+  
   let filteredPhotos = photos;
 
   //if the user typed something in search, only keep photos that match
@@ -1014,13 +1025,14 @@ app.get("/showcase/:id", async (req, res) => {
   // find the photo with this id, plus who uploaded it
   const photo = await AppDataSource.getRepository(Showcase).findOne({
     where: { id: parseInt(req.params.id) }, // params are strings, the id column is a number
-    relations: { user: true }, // this way i can grab the info from user table ex. user.userName output: JohnnyBoy || user.id output: 1
   });
 
   // no photo with that id -> 404 error 
   if (!photo) {
     return res.status(404).json({ error: "Photo not found" });
   }
+
+  const uploader = await AppDataSource.getRepository(User).findOneBy({id: photo.userId});
 
   //send the photo details and uploader information back to the client
   //res.json() sends a response json to the client
@@ -1030,8 +1042,8 @@ app.get("/showcase/:id", async (req, res) => {
     description: photo.description,
     fileName: photo.fileName,
     uploadDate: photo.uploadDate,
-    uploadedBy: photo.user.userName,
-    uploadedById: photo.user.id,
+    uploadedBy: uploader ? uploader.userName : "Unknown",
+    uploadedById: photo.userId,
   });
 });
 
@@ -1040,9 +1052,7 @@ app.get("/showcase/:id", async (req, res) => {
 //i cant use the /showcase/ route because its already a route for my HTML (ui)
 app.get("/api/showcase/", async (req, res) => {
   // get all photos plus who uploaded each one, newest first
-  const photos = await AppDataSource.getRepository(Showcase).find({
-    relations: { user: true },
-  });
+  const photos = await getPhotoswUploader(); 
 
   //this is where im storing the json for each upload 
   const result = [];
@@ -1053,8 +1063,8 @@ app.get("/api/showcase/", async (req, res) => {
       description: photo.description,
       fileName: photo.fileName,
       uploadDate: photo.uploadDate,
-      uploadedBy: photo.user.userName,
-      uploadedById: photo.user.id,
+      uploadedBy: photo.uploaderName,
+      uploadedById: photo.userId,
     });
   }
 
@@ -1116,9 +1126,11 @@ app.post(
 
     if (errors.length > 0) {
       //if something is wrong, itll just show the page again with the errors
-      const photos = await AppDataSource.getRepository(Showcase).find({
-        relations: { user: true }, // added this aswell for the relations of my showcase
-      });
+
+      //using the same asycn function for the get route
+      //explanation: this will just find the right user id who uploaded the pic
+      //uploaderName = userName
+      const photos = await getPhotoswUploader();
 
       //so the photos that'll be shown is when it was uploaded - newest photos first
       photos.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
