@@ -15,11 +15,11 @@ const { Menu } = require("./entity/Menu");
 const { Order } = require("./entity/Order");
 const { OrderItem } = require("./entity/OrderItem");
 const {
-    users,
-    showcasePhotos,
-    reviews,
-    storeInformation,
-    menu,
+  users,
+  showcasePhotos,
+  reviews,
+  storeInformation,
+  menu,
 } = require("./fixtures/data-seed");
 
 // Create the Express app and configure key app-level settings.
@@ -92,7 +92,7 @@ AppDataSource.initialize()
     if ((await userRepository.count()) === 0) {
       const userEntities = userRepository.create(users); // Create objects based on User entity
       await userRepository.save(userEntities); // Save fake data to the database
-      console.log("Users seeded")
+      console.log("Users seeded");
     }
   })
   .then(async () => {
@@ -116,7 +116,7 @@ AppDataSource.initialize()
       }
       const showcaseEntities = showcaseRepository.create(photosWithUserId); //turning the photo datas into Showcase object
       await showcaseRepository.save(showcaseEntities); // save fake data to database
-      console.log("Showcase seeded")
+      console.log("Showcase seeded");
     }
   })
   .then(async () => {
@@ -125,7 +125,7 @@ AppDataSource.initialize()
     if ((await reviewRepository.count()) === 0) {
       const reviewEntities = reviewRepository.create(reviews);
       await reviewRepository.save(reviewEntities);
-      console.log("Reviews seeded")
+      console.log("Reviews seeded");
     }
   })
   .then(async () => {
@@ -141,17 +141,18 @@ AppDataSource.initialize()
       console.log("Store information seeded.");
     }
   })
-   .then(async () => {
-        //create menu repository
-        const menuRepository = AppDataSource.getRepository(Menu);
-        if(await menuRepository.count() === 0){ //if table is empty, seed the data in
-        const MenuEntries = menuRepository.create(menu);
+  .then(async () => {
+    //create menu repository
+    const menuRepository = AppDataSource.getRepository(Menu);
+    if ((await menuRepository.count()) === 0) {
+      //if table is empty, seed the data in
+      const MenuEntries = menuRepository.create(menu);
 
-        //seed menu entries into menu table
-        await menuRepository.save(MenuEntries);
-        console.log("Menu information seeded");
-        }
-    })
+      //seed menu entries into menu table
+      await menuRepository.save(MenuEntries);
+      console.log("Menu information seeded");
+    }
+  })
   .catch((err) => console.error(err));
 
 /*********** HOME PAGE ************
@@ -173,50 +174,6 @@ app.get("/", authenticateTokenFromCookie, (req, res) => {
       { name: "Sucha S.", section: "Customer Reviews" },
     ],
   });
-});
-
-// Contact page: display the form and store information
-app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
-  try {
-    const storeInformationRepo = AppDataSource.getRepository(StoreInformation);
-
-    const storeInformation = await storeInformationRepo.find({
-      order: {
-        displayOrder: "ASC", // Displaying information in ascending order
-      },
-    });
-
-    // Group each db record so each section is displayed
-    const contactDetails = storeInformation.filter(
-      (item) => item.category === "contact",
-    );
-    const locationDetails = storeInformation.filter(
-      (item) => item.category === "location",
-    );
-    const hours = storeInformation.filter((item) => item.category === "hours");
-
-    return res.render("contact", {
-      title: "Contact Us",
-      user: req.user,
-      input: {},
-      contactDetails,
-      locationDetails,
-      hours,
-    });
-  } catch (err) {
-    console.error("Error fetching store information:", err);
-
-    // Database/server error
-    return res.status(500).render("contact", {
-      title: "Contact Us",
-      user: req.user,
-      input: {},
-      error: "We couldn't load the store information right now.",
-      contactDetails: [],
-      locationDetails: [],
-      hours: [],
-    });
-  }
 });
 
 /**
@@ -292,6 +249,33 @@ async function getContactStoreInformation() {
   };
 }
 
+// Display the form and store information
+app.get("/contact", authenticateTokenFromCookie, async (req, res) => {
+  try {
+    const storeData = await getContactStoreInformation();
+
+    return res.render("contact", {
+      title: "Contact Us",
+      user: req.user,
+      input: {},
+      ...storeData,
+    });
+  } catch (err) {
+    console.error("Error fetching store information:", err);
+
+    // Database/server error
+    return res.status(500).render("contact", {
+      title: "Contact Us",
+      user: req.user,
+      input: {},
+      error: "We couldn't load the store information right now.",
+      contactDetails: [],
+      locationDetails: [],
+      hours: [],
+    });
+  }
+});
+
 app.post(
   "/contact",
   authenticateTokenFromCookie,
@@ -301,8 +285,9 @@ app.post(
       .trim()
       .notEmpty()
       .withMessage("Please enter your name.")
-      .isLength({ max: 255 })
-      .withMessage("Name must be 255 characters or fewer."),
+      .bail()
+      .isLength({ max: 35 })
+      .withMessage("Name must be 35 characters or fewer."),
 
     body("email")
       .trim()
@@ -310,21 +295,21 @@ app.post(
       .withMessage("Please enter your email.")
       .bail()
       .isEmail()
-      .withMessage("Please enter a valid email address.")
-      .isLength({ max: 255 })
-      .withMessage("Email must be 255 characters or fewer."),
+      .withMessage("Please enter a valid email address."),
 
     body("subject")
       .trim()
       .notEmpty()
       .withMessage("Please enter a subject.")
-      .isLength({ max: 255 })
-      .withMessage("Subject must be 255 characters or fewer."),
+      .bail()
+      .isLength({ max: 35 })
+      .withMessage("Subject must be 35 characters or fewer."),
 
     body("message")
       .trim()
       .notEmpty()
       .withMessage("Please enter a message.")
+      .bail()
       .isLength({ min: 10, max: 5000 })
       .withMessage("Message must be between 10 and 5000 characters."),
   ],
@@ -630,11 +615,10 @@ app.post(
 
 //#endregion
 
-
 //------------Story 3 - Custom Orders - Roseanne Atchivara -------------
 /*********** CUSTOM ORDERS ************
  * URL: http://localhost:8000/custom-orders
-************************************/
+ ************************************/
 
 /**
  * Categorizes the menu items from the repository
@@ -642,83 +626,78 @@ app.post(
  */
 async function loadCategorizedMenu() {
   //Fetch Menu from DB with sort
-  const sortedMenu = await AppDataSource.getRepository(Menu).find(
-    {
-      order: {
-        //sorts menu and groups them into categories first 
-        category: "ASC",
-        title: "ASC"
-      }
-    }
-  )
+  const sortedMenu = await AppDataSource.getRepository(Menu).find({
+    order: {
+      //sorts menu and groups them into categories first
+      category: "ASC",
+      title: "ASC",
+    },
+  });
 
   //Create an array of all the available categories in the Menu
   let categories = [];
-  sortedMenu.forEach(item => {
+  sortedMenu.forEach((item) => {
     //if the category of the item doesn't exist in the categories array yet, add to categories
-    if (!categories.includes(item.category))
-    {
+    if (!categories.includes(item.category)) {
       categories.push(item.category);
     }
   });
 
-  //For each categories, create an object containing the category name and 
+  //For each categories, create an object containing the category name and
   // a filtered (by category) array of items
   let categorizedMenu = [];
-  categories.forEach(categoryName => {
+  categories.forEach((categoryName) => {
     const items = sortedMenu.filter((item) => item.category === categoryName);
-    categorizedMenu.push(
-      { 
-        name: categoryName,
-        items: items
-      }
-    )
+    categorizedMenu.push({
+      name: categoryName,
+      items: items,
+    });
   });
   return categorizedMenu;
 }
 
 /**
- * Grabs tomorrow's date and formats it to use for 
+ * Grabs tomorrow's date and formats it to use for
  * HTML datetime-local's input's min="" property
  * Catering Order is set up so that the bakery has 24hrs in advance to prep the order!
- * @param {*} addMinutes extra minutes for default value in datetime-local min 
+ * @param {*} addMinutes extra minutes for default value in datetime-local min
  * @returns string for input min="" property
  */
-function tomorrowDate(addMinutes = 0)
-{
+function tomorrowDate(addMinutes = 0) {
   //Sets date to tomorrow's date
   const tomorrowsDate = new Date();
-  tomorrowsDate.setDate( tomorrowsDate.getDate() + 1);
-  tomorrowsDate.setTime( tomorrowsDate.getTime() + addMinutes * 60 * 1000);
+  tomorrowsDate.setDate(tomorrowsDate.getDate() + 1);
+  tomorrowsDate.setTime(tomorrowsDate.getTime() + addMinutes * 60 * 1000);
 
   //Formatter
-  const cateringDateFormatter = new Intl.DateTimeFormat("en-CA",
-    {
-      timeZone: "America/Regina",
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit",
-      hourCycle: "h23"
-    }
-  );
+  const cateringDateFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Regina",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
   return cateringDateFormatter.format(tomorrowsDate).replace(", ", "T");
 }
 
 //Fetch Menu and Store Info from DB
-app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
+app.get("/custom-orders", authenticateTokenFromCookie, async (req, res) => {
   try {
     const categorizedMenu = await loadCategorizedMenu();
     //Using Garrett's function!
     const storeInfo = await getContactStoreInformation();
 
     //Render page
-    res.render('custom-orders', {
-      title: 'Place your Catering Order',
+    res.render("custom-orders", {
+      title: "Place your Catering Order",
       user: req.user,
       menu_list: categorizedMenu,
       caterDate: tomorrowDate(5),
       caterMinDate: tomorrowDate(),
-      storeInfo: storeInfo.locationDetails
-    })
+      storeInfo: storeInfo.locationDetails,
+    });
   } catch (err) {
     console.error("Error loading Custom Order Page:", err);
 
@@ -726,46 +705,54 @@ app.get('/custom-orders', authenticateTokenFromCookie, async (req, res) => {
       title: "Error: Custom Order",
       user: req.user,
       menu_list: [],
-      error: "Unable to load page"
+      error: "Unable to load page",
     });
   }
 });
 
-app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser, 
+app.post(
+  "/custom-orders",
+  authenticateTokenFromCookie,
+  authorizeCurrentUser,
   [
     //Validation Rules
     //Cater date must not be empty, must be a valid date, and must be 24 hours in advance
     body("caterDate")
-    .notEmpty().withMessage("Please enter a date.").bail()
-    .isISO8601().withMessage("Please enter a valid date.").bail()
-    .custom((val) => {
-      return val >= tomorrowDate()
-    }).withMessage("Please allow 24 hours notice to prepare your order."),
+      .notEmpty()
+      .withMessage("Please enter a date.")
+      .bail()
+      .isISO8601()
+      .withMessage("Please enter a valid date.")
+      .bail()
+      .custom((val) => {
+        return val >= tomorrowDate();
+      })
+      .withMessage("Please allow 24 hours notice to prepare your order."),
 
     // Order Quantities must be between 0 and 999
     body("quantities.*")
-    .isInt( 
-      {
+      .isInt({
         min: 0,
-        max: 999
-      }).withMessage("Item Quantity must be between 0 to 999"),
+        max: 999,
+      })
+      .withMessage("Item Quantity must be between 0 to 999"),
 
     // At least one of the quantities must be > 0
     body("quantities")
-    .custom((val) => {
-      const quantities = Object.values(val)
-      .some((quantity) => {
-        return Number(quantity) > 0
-      });
-      return quantities;
-    }).withMessage("Must have at least 1 item that has more than 0 quantity."),
+      .custom((val) => {
+        const quantities = Object.values(val).some((quantity) => {
+          return Number(quantity) > 0;
+        });
+        return quantities;
+      })
+      .withMessage("Must have at least 1 item that has more than 0 quantity."),
 
     // Special Instructions must be <= 255 and is optional
     body("specialInstructions")
-    .optional()
-    .trim()
-    .isLength({ max: 255 })
-    .withMessage("Special Instructions must be 255 characters max.")
+      .optional()
+      .trim()
+      .isLength({ max: 255 })
+      .withMessage("Special Instructions must be 255 characters max."),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -778,27 +765,27 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
         const storeInfo = await getContactStoreInformation();
 
         //If validation fails (errors)
-        return res.status(400).render('custom-orders', {
-          title: 'Place your Catering Order',
+        return res.status(400).render("custom-orders", {
+          title: "Place your Catering Order",
           user: req.user,
           menu_list: categorizedMenu,
           caterDate: req.body.caterDate,
           caterMinDate: tomorrowDate(),
           storeInfo: storeInfo.locationDetails,
           errors: errors.array(),
-          input: req.body
+          input: req.body,
         });
       } catch (err) {
-          //If something goes wrong with loading (error)
-          console.error("Error loading Custom Order Page:", err);
-          
-          return res.status(500).render("custom-orders", {
-            title: "Error: Custom Order",
-            user: req.user,
-            menu_list: [],
-            error: "Unable to load page"
-          });
-        }
+        //If something goes wrong with loading (error)
+        console.error("Error loading Custom Order Page:", err);
+
+        return res.status(500).render("custom-orders", {
+          title: "Error: Custom Order",
+          user: req.user,
+          menu_list: [],
+          error: "Unable to load page",
+        });
+      }
     }
 
     try {
@@ -818,7 +805,9 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
 
         //Added id in quantities' key to avoid losing key
         //it creates arrays instead of objects if the keys are just numbers
-        const menuItem = await menu.findOneBy( { id: Number(item.replace("id", ""))} );
+        const menuItem = await menu.findOneBy({
+          id: Number(item.replace("id", "")),
+        });
         if (!menuItem) {
           //just in case
           continue;
@@ -830,66 +819,61 @@ app.post('/custom-orders', authenticateTokenFromCookie, authorizeCurrentUser,
         totalPrice += overallPrice;
 
         //Add this item's information in orderItems
-        orderItems.push(
-          {
-            menuId: menuItem.id,
-            title: menuItem.title,
-            itemPrice: price.toFixed(2),
-            quantity: quantity,
-            overallPrice: overallPrice.toFixed(2)
-          }
-        )
+        orderItems.push({
+          menuId: menuItem.id,
+          title: menuItem.title,
+          itemPrice: price.toFixed(2),
+          quantity: quantity,
+          overallPrice: overallPrice.toFixed(2),
+        });
       }
 
       //Send order details to Order
       const order = AppDataSource.getRepository(Order);
-      const newOrder = order.create(
-        {
-          userId: req.user.id,
-          caterDate: req.body.caterDate,
-          specialInstructions: req.body.specialInstructions,
-          total: totalPrice
-        }
-      );
+      const newOrder = order.create({
+        userId: req.user.id,
+        caterDate: req.body.caterDate,
+        specialInstructions: req.body.specialInstructions,
+        total: totalPrice,
+      });
       await order.save(newOrder);
 
       //Send order item details to OrderItem
       const orderItem = AppDataSource.getRepository(OrderItem);
 
       for (const item of orderItems) {
-          const newOrderItem = orderItem.create({
-            orderId: newOrder.id,
-            menuId: item.menuId,
-            quantity: item.quantity,
-            unitPrice: item.itemPrice
-          }
-        );
+        const newOrderItem = orderItem.create({
+          orderId: newOrder.id,
+          menuId: item.menuId,
+          quantity: item.quantity,
+          unitPrice: item.itemPrice,
+        });
 
         await orderItem.save(newOrderItem);
       }
 
       //Using a different template for checkout
-      return res.render('order-checkout', {
+      return res.render("order-checkout", {
         title: "Order Placed",
         user: req.user,
         orderId: newOrder.id,
         orderItems: orderItems,
         total: totalPrice.toFixed(2),
         caterDate: req.body.caterDate.replace("T", " at "),
-        specialInstructions: req.body.specialInstructions
-      })
+        specialInstructions: req.body.specialInstructions,
+      });
     } catch (err) {
       //If something goes wrong with loading (error)
       console.error("Error placing order:", err);
-      
+
       return res.status(500).render("custom-orders", {
         title: "Error: Custom Order",
         user: req.user,
         menu_list: [],
-        error: "We couldn't place your order. Please try again."
+        error: "We couldn't place your order. Please try again.",
       });
     }
-  }
+  },
 );
 
 //------------End of Story 3 - Roseanne Atchivara -------------
@@ -966,7 +950,6 @@ app.get("/showcase", authenticateTokenFromCookie, async (req, res) => {
     oldInput: req.query, // keeps the search box + sort dropdown filled in
   });
 });
-
 
 /**
  * Only logged in users can upload pictures.
@@ -1065,120 +1048,119 @@ app.post(
 
 // ---------------------------- STORY 2: SAMUEL CYRENNE ---------------------------------------------
 app.get("/menu", authenticateTokenFromCookie, async (req, res) => {
-    const menuRepository = await AppDataSource.getRepository(Menu);
+  const menuRepository = await AppDataSource.getRepository(Menu);
 
-    //grab all items in the menu
-    const menuItems = await menuRepository.find();
-    const { search, filter } = req.query;
-    let filteredMenuItems = menuItems;
+  //grab all items in the menu
+  const menuItems = await menuRepository.find();
+  const { search, filter } = req.query;
+  let filteredMenuItems = menuItems;
 
-     filteredMenuItems.map((item)=>{
-      console.log(item);
-    });
-   
-    if (
-        search
-    ) //if search isnt empty, filter the query and return the new menu items
-    {
-        const menuSearchLower = search.toLowerCase(); //remove case-sensitivity from search results
-        if (filter === "title") {
-            filteredMenuItems = menuItems.filter((item) =>
-                // if searching by item name [title]
-                item.title.toLowerCase().includes(menuSearchLower)
-            );
-        } else if (filter === "category") {
-            filteredMenuItems = menuItems.filter((item) =>
-                // if searching by item category (like drink or food)
-                item.category.toLowerCase().includes(menuSearchLower)
-            );
-        }
-        else if (filter === "price") {
-            filteredMenuItems = menuItems.filter((item) =>
-                // if searching by price
-                item.price.includes(menuSearchLower)
-            );
-        }
+  filteredMenuItems.map((item) => {
+    console.log(item);
+  });
+
+  if (
+    search
+  ) //if search isnt empty, filter the query and return the new menu items
+  {
+    const menuSearchLower = search.toLowerCase(); //remove case-sensitivity from search results
+    if (filter === "title") {
+      filteredMenuItems = menuItems.filter((item) =>
+        // if searching by item name [title]
+        item.title.toLowerCase().includes(menuSearchLower),
+      );
+    } else if (filter === "category") {
+      filteredMenuItems = menuItems.filter((item) =>
+        // if searching by item category (like drink or food)
+        item.category.toLowerCase().includes(menuSearchLower),
+      );
+    } else if (filter === "price") {
+      filteredMenuItems = menuItems.filter((item) =>
+        // if searching by price
+        item.price.includes(menuSearchLower),
+      );
     }
+  }
 
-   
-
-   
-
-    
-    res.render("menu", {
-        menuItems: filteredMenuItems,
-        success: "",
-        error: "",
-        user: req.user
-    });
+  res.render("menu", {
+    menuItems: filteredMenuItems,
+    success: "",
+    error: "",
+    user: req.user,
+  });
 });
 
 //ADD NEW MENU ITEM
 app.post(
-    "/menu",
-    authenticateTokenFromCookie,
-    authorizeCurrentUser,
-    [
-        //https://express-validator.github.io/docs/api/validation-chain/#standard-validators
-        //middleware - express-validator uses to create the "rules"
-        body("itemName").trim().isLength({ min: 2 }).withMessage("Item title must be at least 2 characters")
-            .isAlpha().withMessage("Title cannot be a number"),
-        body("itemType").trim().isLength({ min: 2 }).withMessage("Item category must be at least 2 characters")
-            .isAlpha().withMessage("Category cannot be a number"),
-        body("itemPrice").trim().isLength({min: 1}).toFloat().
-            isNumeric().withMessage("Item price must be a number")
-    ],
-    async (req, res) => {
-        const validationError = validationResult(req);
-        console.log(validationError);
+  "/menu",
+  authenticateTokenFromCookie,
+  authorizeCurrentUser,
+  [
+    //https://express-validator.github.io/docs/api/validation-chain/#standard-validators
+    //middleware - express-validator uses to create the "rules"
+    body("itemName")
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage("Item title must be at least 2 characters")
+      .isAlpha()
+      .withMessage("Title cannot be a number"),
+    body("itemType")
+      .trim()
+      .isLength({ min: 2 })
+      .withMessage("Item category must be at least 2 characters")
+      .isAlpha()
+      .withMessage("Category cannot be a number"),
+    body("itemPrice")
+      .trim()
+      .isLength({ min: 1 })
+      .toFloat()
+      .isNumeric()
+      .withMessage("Item price must be a number"),
+  ],
+  async (req, res) => {
+    const validationError = validationResult(req);
+    console.log(validationError);
 
-        const menuRepository = await AppDataSource.getRepository(Menu);
-        const errors = validationResult(req);
+    const menuRepository = await AppDataSource.getRepository(Menu);
+    const errors = validationResult(req);
 
-       
-        
-        const { itemName, itemType, itemPrice } = req.body; //the three form values
+    const { itemName, itemType, itemPrice } = req.body; //the three form values
 
-        //if validation error occurs, render the page with the error
-        if  (!errors.isEmpty()) {
-            return res.render("menu", {
-                success: false,
-                errors: errors.array(),
-                 user: req.user,
+    //if validation error occurs, render the page with the error
+    if (!errors.isEmpty()) {
+      return res.render("menu", {
+        success: false,
+        errors: errors.array(),
+        user: req.user,
+      });
+    }
 
-            });
-        }
+    const newMenuItem = {
+      title: itemName,
+      category: itemType,
+      userId: req.user.id,
+      price: itemPrice,
+    };
 
-       
-        
+    // Save this item to the database
+    await menuRepository.save(newMenuItem);
+    console.log("USER: " + req.user);
 
-        const newMenuItem = {
-            title: itemName,
-            category: itemType,
-            userId: req.user.id, 
-            price: itemPrice,
-        };
-
-        // Save this item to the database
-        await menuRepository.save(newMenuItem);
-        console.log("USER: " + req.user);
-
-        // Render a third div, displaying the newly updated item
-        res.render("menu", {
-            success: true,
-            error: null,
-             user: req.user,
-            newItem: {
-                title : newMenuItem.title,
-                category:  newMenuItem.category,
-                price:  "$" + newMenuItem.price
-            },
-           
-        });
-    },
+    // Render a third div, displaying the newly updated item
+    res.render("menu", {
+      success: true,
+      error: null,
+      user: req.user,
+      newItem: {
+        title: newMenuItem.title,
+        category: newMenuItem.category,
+        price: "$" + newMenuItem.price,
+      },
+    });
+  },
 );
 
 /*********** Start the server *************/
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
