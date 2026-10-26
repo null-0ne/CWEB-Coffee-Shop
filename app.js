@@ -12,7 +12,6 @@ const { User } = require("./entity/User");
 const { Showcase } = require("./entity/Showcase");
 const { Review } = require("./entity/Review");
 const { Menu } = require("./entity/Menu");
-const { Menu } = require("./entity/Menu");
 const { Order } = require("./entity/Order");
 const { OrderItem } = require("./entity/OrderItem");
 const {
@@ -22,7 +21,6 @@ const {
     storeInformation,
     menu,
 } = require("./fixtures/data-seed");
-const req = require("express/lib/request");
 
 // Create the Express app and configure key app-level settings.
 const app = express();
