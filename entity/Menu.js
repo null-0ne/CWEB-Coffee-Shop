@@ -31,7 +31,7 @@ module.exports.Menu = new EntitySchema({
         price: {
             type: "decimal",
             nullable: false,
-            precision: 8,
+            precision: 5,
             scale: 2,
         },
     },
