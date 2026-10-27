@@ -566,7 +566,7 @@ app.get("/profile", authenticateTokenFromCookie, async (req, res) => {
 
   res.render("profile", {
     title: "Profile",
-    user: req.user.userName,
+    user: req.user,
     email: currentUser.email,
     phone: formattedPhoneNumber,
     birthDate: currentUser.birthDate,
